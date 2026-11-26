@@ -1,0 +1,53 @@
+# 5. Tools and workflow
+
+All tools are plain Python 3 (standard library only). They read and write Altium's binary files directly, so the
+design can be checked in CI or on a machine without Altium.
+
+## Checking
+
+| Command | What it does |
+|---|---|
+| `python tools/schnet.py hardware/DebugBoard.SchDoc` | Prints components and nets of a sheet (geometric netlist). |
+| `python tools/verify_gen.py` | Checks sheets 2 and 3 pin-by-pin against the design spec in `gen_sheet2.py`. Expect `errors=0`. |
+| `python tools/compare_nets.py a.SchDoc b.SchDoc` | Connectivity diff of two versions of a sheet. Use it before and after any cosmetic edit. |
+| `python tools/libpins.py some.SchLib` | Lists symbol pins and linked footprints of a library (works on IntLibs too). |
+| `python tools/calc_v1.py` | Recomputes every resistor/threshold value in the power design. |
+
+## How sheets 2 and 3 were made
+
+`tools/gen_sheet2.py` **generates** both power sheets from a data description of the circuit (the `blocks` list:
+every part, value and pin → net). That description mirrors the per-mux table in `design/V1_PLAN.md`.
+It uses `tools/templates/*.SchDoc` (one placed instance of each part) as symbols, lays the blocks out on A3,
+and draws frames and headings in the sheet-1 style.
+
+```
+python tools/gen_sheet2.py hardware/DebugBoardMuxes.SchDoc hardware/DebugBoardPowerControl.SchDoc
+python tools/verify_gen.py
+```
+
+**Hand edits vs. regeneration:** it's fine to edit sheets 2/3 in Altium from now on, but re-running the generator
+overwrites those edits. Either change the spec in `gen_sheet2.py` and regenerate, or stop using the generator.
+
+Low-level pieces: `tools/cfb.py` (Compound File reader), `tools/schgen.py` (record parser/writer, CFB writer,
+component cloning).
+
+Gotchas learned the hard way:
+- A SchDoc's header `Weight` must equal the number of records, or Altium silently stops loading partway through.
+- Moves must stay on the grid (multiples of 100 mil), or wires stop touching pins.
+- Empty `||` segments inside records are significant and must be preserved byte-for-byte.
+
+`tools/oneoff/` holds the scripts used once for V1 edits to sheet 1 (Pico ports, re-layout, cap move). They're kept
+for the record.
+
+## Altium notes
+- The project links `hardware/Libraries/SquidDebugger_V1/Project Outputs/SquidDebugger_V1.IntLib` (13 vendor parts,
+  pin-verified). Its sources are in `SquidDebugger_V1/` (a LibPkg). Workspace parts: TPS2121 (CMP-019-00076-1),
+  TLV70433 (CMP-019-00077-1), MIC2544-1 (CMP-00008-1).
+- When Altium says "file modified outside, reload?", answer **Yes** for project files. If it then offers to save
+  an older in-memory copy, answer **Don't Save**.
+- The original Altium 365-linked project folder (`Documents/Altium/Debugging Board V1/`) is kept as an archive.
+  This repo's `hardware/` is now the working copy.
+
+## Backups
+Dated full-project backups were taken before each larger edit (`Documents/Altium/Debugging Board V1 backup <date_time>/`).
+With the project in git, commits replace that habit.

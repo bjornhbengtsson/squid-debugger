@@ -1,0 +1,19 @@
+# Altium binaries: never diff/convert
+*.SchDoc  binary
+*.PcbDoc  binary
+*.SchLib  binary
+*.SCHLIB  binary
+*.PcbLib  binary
+*.IntLib  binary
+*.BomDoc  binary
+*.docx    binary
+*.xlsx    binary
+# Altium text files: keep Altium's CRLF exactly as written
+*.PrjPcb  -text
+*.LibPkg  -text
+*.OutJob  -text
+*.stp     -text
+*.step    -text
+*.STEP    -text
+# everything else: normalize
+*         text=auto

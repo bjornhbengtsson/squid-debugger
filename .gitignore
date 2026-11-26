@@ -1,0 +1,32 @@
+### Altium ###
+**/__Previews/
+**/History/
+Project Logs*/
+**/Project Logs*/
+*.PcbDoc.htm
+**/*.ldb
+*.metadata
+*.PrjPcbStructure
+*.PrjMbdStructure
+CompareHistory/
+# Altium compile output, except the project library IntLib (the project links it)
+Project Outputs*/
+!hardware/Libraries/SquidDebugger_V1/Project Outputs/
+hardware/Libraries/SquidDebugger_V1/Project Outputs/*
+!hardware/Libraries/SquidDebugger_V1/Project Outputs/SquidDebugger_V1.IntLib
+# Altium auto-backup / lock files
+*.SchDocPreview
+~$*
+
+### Vendor datasheets (copyrighted; links in reference/datasheets.md) ###
+reference/*.pdf
+
+### Python / OS ###
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### Claude Code local settings ###
+.claude/settings.local.json

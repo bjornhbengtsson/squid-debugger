@@ -1,0 +1,292 @@
+<title>Squid Debugger V1 Power Path</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a schematic "sheet" — title block header, full-width block diagram, then numbered build sections in one reading column */
+:root{
+  --bg:#eef2f0; --paper:#ffffff; --fg:#16211c; --muted:#56655e; --line:#c6d1cb; --soft:#e3eae6;
+  --accent:#16714a; --stk:#2a5ea6; --psu:#a8640c; --usb:#7442b3; --data:#4a5852; --warn:#a33a2a;
+  --f-disp:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1412; --paper:#151d1a; --fg:#e2eae6; --muted:#97a69f; --line:#2c3833; --soft:#1c2622;
+  --accent:#4cc28a; --stk:#7da8ec; --psu:#e7a64c; --usb:#b995ee; --data:#a7b6af; --warn:#f08a77; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e1412; --paper:#151d1a; --fg:#e2eae6; --muted:#97a69f; --line:#2c3833; --soft:#1c2622;
+  --accent:#4cc28a; --stk:#7da8ec; --psu:#e7a64c; --usb:#b995ee; --data:#a7b6af; --warn:#f08a77; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px}
+.sheet{max-width:1180px;margin:0 auto;display:grid;gap:28px}
+h1,h2,h3{font-family:var(--f-disp);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(28px,4.4vw,42px);font-weight:700;letter-spacing:.01em}
+h2{font-size:24px;font-weight:600;display:flex;gap:12px;align-items:baseline}
+h2 .no{font-family:var(--f-mono);font-size:13px;color:var(--accent);font-weight:600;letter-spacing:.06em}
+h3{font-size:18px;font-weight:600;margin-top:6px}
+p{margin:0;max-width:72ch}
+code,.mono{font-family:var(--f-mono);font-size:.86em}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;white-space:nowrap}
+a{color:var(--accent)}
+.tb{border:1.5px solid var(--fg);background:var(--paper);display:grid;grid-template-columns:1fr auto}
+.tb .main{padding:20px 22px;display:grid;gap:10px;min-width:0}
+.tb .lede{color:var(--muted);max-width:80ch}
+.tb .meta{border-left:1.5px solid var(--fg);display:grid;font-family:var(--f-mono);font-size:12px;min-width:230px}
+.tb .meta div{padding:8px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px}
+.tb .meta div:last-child{border-bottom:0}
+.tb .meta span:first-child{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:10.5px}
+@media (max-width:720px){.tb{grid-template-columns:1fr}.tb .meta{border-left:0;border-top:1.5px solid var(--fg);min-width:0}}
+section{display:grid;gap:14px;min-width:0}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:18px 20px;display:grid;gap:12px;min-width:0}
+.scroll{overflow-x:auto;min-width:0}
+.diagram{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:10px}
+.diagram svg{display:block;min-width:900px;width:100%;height:auto}
+/* SVG */
+.bd .bg{fill:var(--paper)}
+.bd .lane{fill:var(--soft);fill-opacity:.55;stroke:none}
+.bd .lane.alt{fill-opacity:.25}
+.bd .band{fill:none;stroke:var(--line);stroke-dasharray:5 4}
+.bd .box{fill:var(--paper);stroke:var(--fg);stroke-width:1.2}
+.bd .mux{fill:var(--paper);stroke:var(--accent);stroke-width:2}
+.bd .conn{fill:var(--paper);stroke:var(--fg);stroke-width:1.6}
+.bd .pinbox{fill:var(--fg)}
+.bd .pinno{fill:var(--paper);font:600 11px var(--f-mono)}
+.bd .tag{stroke-width:1.4}
+.bd .tag.stk{fill:color-mix(in srgb,var(--stk) 12%,var(--paper));stroke:var(--stk)}
+.bd .tag.psu{fill:color-mix(in srgb,var(--psu) 12%,var(--paper));stroke:var(--psu)}
+.bd .tag.usb{fill:color-mix(in srgb,var(--usb) 12%,var(--paper));stroke:var(--usb)}
+.bd text{fill:var(--fg)}
+.bd .hdr{font:600 12px var(--f-disp);letter-spacing:.12em;fill:var(--muted)}
+.bd .lname{font:700 17px var(--f-disp)}
+.bd .tl{font:700 11px var(--f-disp);letter-spacing:.1em}
+.bd .tl.stk{fill:var(--stk)} .bd .tl.psu{fill:var(--psu)} .bd .tl.usb{fill:var(--usb)}
+.bd .net{font:600 11.5px var(--f-mono)}
+.bd .netb{font:600 13px var(--f-mono)}
+.bd .netsm{font:400 10.5px var(--f-mono);fill:var(--muted)}
+.bd .ref{font:600 14px var(--f-disp)}
+.bd .part{font:400 11px var(--f-mono);fill:var(--muted)}
+.bd .mname{font:700 13px var(--f-mono);fill:var(--accent)}
+.bd .small{font:400 11.5px var(--f-body);fill:var(--muted)}
+.bd .pin{font:400 9.5px var(--f-mono);fill:var(--muted)}
+.bd .w{fill:none;stroke-width:2.2;stroke-linejoin:round}
+.bd .w.stk{stroke:var(--stk)} .bd .w.psu{stroke:var(--psu)} .bd .w.usb{stroke:var(--usb)}
+.bd .w.sp,.bd .w.out{stroke:var(--fg)} .bd .w.out{stroke-width:2.8}
+.bd .w.data{stroke:var(--data);stroke-width:1.6}
+.bd .w.ref{stroke:var(--accent);stroke-width:1.6;stroke-dasharray:4 3}
+.bd .ah.stk,.bd .dot.stk{fill:var(--stk)} .bd .ah.psu{fill:var(--psu)} .bd .ah.usb,.bd .dot.usb{fill:var(--usb)}
+.bd .ah.sp,.bd .ah.out{fill:var(--fg)} .bd .ah.data{fill:var(--data)} .bd .ah.ref{fill:var(--accent)}
+/* tables */
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{font:600 11.5px var(--f-disp);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);background:var(--soft);white-space:nowrap}
+td.n{font-family:var(--f-mono);font-size:12.5px;white-space:nowrap}
+tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.chip{display:inline-block;font:600 11px var(--f-disp);letter-spacing:.08em;padding:1px 7px;border-radius:2px;border:1px solid currentColor}
+.chip.stk{color:var(--stk)} .chip.psu{color:var(--psu)} .chip.usb{color:var(--usb)} .chip.off{color:var(--muted)}
+.eq{font-family:var(--f-mono);font-size:13.5px;background:var(--soft);border-left:3px solid var(--accent);padding:10px 14px;overflow-x:auto;white-space:pre;line-height:1.7}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+ol,ul{margin:0;padding-left:22px;display:grid;gap:8px;max-width:80ch}
+li::marker{color:var(--accent);font-family:var(--f-mono);font-size:.85em}
+.fix{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}
+.sev{font:600 10.5px var(--f-disp);letter-spacing:.1em;text-transform:uppercase;padding:1px 6px;border-radius:2px;white-space:nowrap}
+.sev.hi{background:var(--warn);color:var(--paper)} .sev.md{border:1px solid var(--warn);color:var(--warn)} .sev.lo{border:1px solid var(--muted);color:var(--muted)}
+.fixes{display:grid;gap:12px}
+.note{color:var(--muted);font-size:14px}
+kbd{font-family:var(--f-mono);font-size:.82em;border:1px solid var(--line);border-bottom-width:2px;padding:0 5px;border-radius:3px;background:var(--paper)}
+</style>
+
+<div class="sheet">
+
+<header class="tb">
+  <div class="main">
+    <h1>Squid Debugger V1 · Power Path</h1>
+    <p class="lede">Rev-1 power architecture for the SDSL Squid Debugger. Every rail is selected by TI TPS2121 priority muxes in the datasheet §10.4 XREF configuration: <strong>Stack first, then bench PSU, then USB</strong>. USB only backs up 3.3 V and 5 V. This sheet carries the block diagram, the values for every mux, the derivations behind them, and the fixes needed in the V0 capture.</p>
+  </div>
+  <div class="meta">
+    <div><span>Project</span><span>Debugging Board V1</span></div>
+    <div><span>New sheet</span><span>Power_Mux.SchDoc</span></div>
+    <div><span>Muxes</span><span>6 × TPS2121RUXR</span></div>
+    <div><span>XREF</span><span>2.500 V</span></div>
+    <div><span>Lab</span><span>ASU · SDSL</span></div>
+    <div><span>Date</span><span>2026-11-05</span></div>
+  </div>
+</header>
+
+<section>
+  <h2><span class="no">01</span>Block diagram</h2>
+  <div class="diagram scroll">{{SVG}}</div>
+  <p class="note">This replaces the whiteboard sketch. Stage A picks PSU over USB. Stage B then gives the flight stack priority over whatever stage A chose. The <code>_PU</code> nets are the intermediate "PSU-or-USB" nodes. The stack goes through only one mux, and every PR1 pin watches a real source rather than another mux's output. A PNG of this diagram is attached in chat so you can place it on the schematic (Place » Drawing Tools » Graphic).</p>
+</section>
+
+<section>
+  <h2><span class="no">02</span>Source priority</h2>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>Stack</th><th>PSU</th><th>USB</th><th>+3V3_OUT / +5V_OUT</th><th>+5VRF_OUT / +12V_OUT</th></tr></thead>
+      <tbody>
+        <tr><td>valid</td><td>any</td><td>any</td><td><span class="chip stk">STACK</span></td><td><span class="chip stk">STACK</span></td></tr>
+        <tr><td>absent or below trip</td><td>valid</td><td>any</td><td><span class="chip psu">PSU</span></td><td><span class="chip psu">PSU</span></td></tr>
+        <tr><td>absent or below trip</td><td>absent</td><td>present</td><td><span class="chip usb">USB</span></td><td><span class="chip off">OFF</span></td></tr>
+        <tr><td>above OV trip</td><td colspan="2">that input is disconnected, the next valid source takes over</td><td colspan="2">same</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Per the TPS2121 truth table, if only one input is valid (above UVLO and below OV) that input powers OUT regardless of PR1/CP2. A sagging Stack with nothing else connected keeps powering the DUT instead of dropping out. The TPS2121 also blocks reverse current, so the stack can never back-feed your bench supply or the PC's USB port.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">03</span>Power_Mux sheet: values per instance</h2>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>Ref</th><th>Stage</th><th>IN1 (priority)</th><th>IN2</th><th>OUT</th><th>PR1 R<sub>T</sub> / R<sub>B</sub></th><th>R<sub>HYST</sub> PR1→ST</th><th>Switch away / return</th><th>OV1 divider</th><th>OV2 divider</th><th>C<sub>OUT</sub></th></tr></thead>
+      <tbody>
+        <tr><td class="n">U3</td><td>3V3-A</td><td class="n">+3V3_PSU</td><td class="n">+3V3_USB</td><td class="n">+3V3_PU</td><td class="n">2.10k / 10.0k</td><td class="n">54.9k</td><td class="n">3.00 / 3.12 V</td><td class="n">26.1k / 10.0k (3.83 V)</td><td class="n">OV2 → GND (buck output is fixed)</td><td class="n">22 µF</td></tr>
+        <tr><td class="n">U5</td><td>3V3-B</td><td class="n">+3V3_STK</td><td class="n">+3V3_PU</td><td class="n">+3V3_OUT</td><td class="n">2.10k / 10.0k</td><td class="n">54.9k</td><td class="n">3.00 / 3.12 V</td><td class="n">26.1k / 10.0k (3.83 V)</td><td class="n">OV2 → GND (U3 already checks it)</td><td class="n">2 × 22 µF</td></tr>
+        <tr><td class="n">U7</td><td>5V-A</td><td class="n">+5V_PSU</td><td class="n">+VBUS_PROT</td><td class="n">+5V_PU</td><td class="n">8.25k / 10.0k</td><td class="n">150k</td><td class="n">4.52 / 4.70 V</td><td class="n">44.2k / 10.0k (5.75 V)</td><td class="n">44.2k / 10.0k</td><td class="n">22 µF</td></tr>
+        <tr><td class="n">U8</td><td>5V-B</td><td class="n">+5V_STK</td><td class="n">+5V_PU</td><td class="n">+5V_OUT</td><td class="n">8.25k / 10.0k</td><td class="n">150k</td><td class="n">4.52 / 4.70 V</td><td class="n">44.2k / 10.0k (5.75 V)</td><td class="n">OV2 → GND (U7 already checks it)</td><td class="n">2 × 22 µF</td></tr>
+        <tr><td class="n">U9</td><td>5VRF</td><td class="n">+5VRF_STK</td><td class="n">+5VRF_PSU</td><td class="n">+5VRF_OUT</td><td class="n">8.25k / 10.0k</td><td class="n">150k</td><td class="n">4.52 / 4.70 V</td><td class="n">44.2k / 10.0k</td><td class="n">44.2k / 10.0k</td><td class="n">2 × 22 µF</td></tr>
+        <tr><td class="n">U10</td><td>12V</td><td class="n">+12V_STK</td><td class="n">+12V_PSU</td><td class="n">+12V_OUT</td><td class="n">34.8k / 10.0k</td><td class="n">287k</td><td class="n">11.1 / 11.5 V</td><td class="n">118k / 10.0k (13.6 V)</td><td class="n">118k / 10.0k</td><td class="n">2 × 10 µF 35 V</td></tr>
+      </tbody>
+    </table>
+    <h3>Common to all six</h3>
+    <ul>
+      <li><code>CP2</code> → <code>XREF_2V5</code>. One shared reference; each CP2 pin leaks only ±0.1 µA.</li>
+      <li><code>ILM</code> → 100 kΩ to GND, which gives ≈1.24 A typ (≈0.8–1.65 A). 100 kΩ is the maximum allowed R<sub>ILM</sub>, so this is the lowest limit the part can set. It's short-circuit protection, not a precise 1 A connector fuse.</li>
+      <li><code>SS</code> → 100 nF to GND, which gives ≈800 V/s soft-start. 3.3 V ramps in ≈4 ms, and a 100 µF DUT load draws ≈80 mA of inrush.</li>
+      <li><code>ST</code> → 10 kΩ pull-up to <code>+3V3_AUX</code> (datasheet asks for 6–20 kΩ), plus 10 kΩ series to a spare Pico GPIO. GP14–GP19 look free on V0; check before you assign them.</li>
+      <li>0.1 µF X7R on IN1, IN2 and OUT, right at the pins. Bulk C<sub>OUT</sub> as in the table. Stage-A bulk doubles as the stage-B IN2 capacitor.</li>
+      <li>Both stages in a chain use the same switch-over voltage. Stage B's PR1 senses the stack directly, so a PSU→USB hand-off in stage A can't trip it, and no PR1 filter capacitor is needed.</li>
+    </ul>
+    <p class="note">Pinout check (RUX): IN1 7 · IN2 2 · OUT 1, 8 · CP2 3 · OV2 4 · OV1 5 · PR1 6 · ST 9 · ILM 10 · SS 11 · GND 12. Your existing symbol already matches this.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">04</span>Reference and USB support circuits</h2>
+  <div class="grid2">
+    <div class="panel">
+      <h3>XREF and +3V3_AUX</h3>
+      <p>In TI's §10.4 the 2.5 V on CP2 comes from an external REF3325 that is always on. The debugger has no always-on rail, so we build one from whatever sources are present.</p>
+      <ol>
+        <li><strong>VAUX:</strong> 5 × BAT54C (common cathode). The 9 anodes go to the STK/PSU rails (8) and VBUS. The 10th anode is unused.</li>
+        <li><strong>+3V3_AUX:</strong> TLV70433DBV. 24 V max in, 3.4 µA I<sub>Q</sub>, 1 µF in and out. With only a 3.3 V source it drops out to ≈2.9 V, which is still enough.</li>
+        <li><strong>XREF_2V5:</strong> LM4040-2.5 (B grade, 0.2 %) shunt, fed from +3V3_AUX through 2.00 kΩ. Bias is 150 µA with AUX at 2.8 V and 400 µA at 3.3 V, above the ≈60 µA minimum.</li>
+      </ol>
+      <p class="note">CP2 = 2.5 V sits above V<sub>REF</sub>(max) = 1.10 V, so fast switchover (t<sub>FSW</sub> ≈ 5 µs) is enabled on every mux.</p>
+    </div>
+    <div class="panel">
+      <h3>USB path</h3>
+      <ol>
+        <li><strong>Pico VBUS → U4 MIC2544 → +VBUS_PROT.</strong> Change R5 from 261 Ω to <code>464 Ω</code>: R = 230 / 0.5 A = 460 Ω → 464 Ω E96. The 0.88 A you have now is over the USB 2.0 500 mA budget.</li>
+        <li><strong>+VBUS_PROT → U13 AP63203 → +3V3_USB.</strong> This is the "Reg" on the whiteboard. A buck is the right call here. A linear 5→3.3 V regulator at 0.5 A would burn (5 − 3.3) × 0.5 = 0.85 W, which is too much for SOT-23 parts.</li>
+        <li><strong>+VBUS_PROT → U7 IN2</strong> (the 5 V USB fallback), with OV2 at 5.75 V against bad chargers.</li>
+        <li>Budget: the Pico (~50 mA), the buck input and the 5 V output all share the 0.5 A limit.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">05</span>Derivations</h2>
+  <div class="panel">
+    <h3>Variables</h3>
+    <p class="note">V<sub>X</sub> = XREF = 2.500 V · V<sub>REF</sub> = internal OV reference, 1.06 V typ (1.01–1.10 V) · R<sub>T</sub>, R<sub>B</sub> = divider top/bottom · R<sub>H</sub> = hysteresis resistor PR1→ST · R<sub>PU</sub> = ST pull-up (10 kΩ to 3.3 V) · V<sub>ST,H</sub> = 3.3 V.</p>
+    <h3>1 · PR1 switch point (XREF mode)</h3>
+    <p>IN1 is preferred while V<sub>PR1</sub> &gt; V<sub>CP2</sub>. Without hysteresis:</p>
+    <div class="eq">V_SW = V_X · (1 + R_T / R_B)      →   R_T = R_B · (V_SW / V_X − 1)
+3.3 V stage A:  R_T = 10k · (3.00/2.5 − 1) = 2.00 kΩ</div>
+    <h3>2 · Adding hysteresis through ST (TI's 1 MΩ "Hyst" resistor)</h3>
+    <p>KCL at PR1 with R<sub>H</sub> tied to ST. ST is high while IN1 is active and low once IN2 takes over, so the feedback is positive:</p>
+    <div class="eq">(V_IN − V_X)/R_T + (V_ST − V_X)/R_H' = V_X/R_B
+V_IN = V_X + R_T·[ V_X/R_B + (V_X − V_ST)/R_H' ]
+
+Falling (IN1 active, ST high, R_H' = R_H + R_PU):
+  V_fall = V_X + R_T·[ V_X/R_B − (3.3 − V_X)/(R_H + R_PU) ]
+Rising (IN2 active, ST low, R_H' = R_H):
+  V_rise = V_X + R_T·[ V_X/R_B + V_X/R_H ]
+
+U3: R_T = 2.10k, R_B = 10.0k, R_H = 54.9k
+  V_X/R_B = 250.0 µA ;  0.8 V / 64.9k = 12.33 µA ;  2.5 V / 54.9k = 45.54 µA
+  V_fall = 2.5 + 2.10k·(250.0 − 12.33) µA = 2.5 + 0.499 = 3.00 V
+  V_rise = 2.5 + 2.10k·(250.0 + 45.54) µA = 2.5 + 0.621 = 3.12 V   → 122 mV hysteresis</div>
+    <p class="note">Why not copy TI's 1 MΩ: with your low-impedance dividers (R<sub>T</sub>∥R<sub>B</sub> ≈ 1.7 kΩ), 1 MΩ shifts PR1 by only ~1 mV, so it does nothing. R<sub>H</sub> has to scale with R<sub>T</sub>. Tolerance: comparator offset (≤40 mV) plus XREF (0.2 %) moves the switch point about ±1.8 %. For U3 that's 2.95–3.05 V.</p>
+    <h3>3 · Overvoltage cut-off</h3>
+    <div class="eq">V_OV = V_REF · (1 + R_T/R_B)       R_T = R_B · (V_OV/1.06 − 1)
+3.3 V: 10k·(3.8/1.06 − 1) = 25.8k → 26.1k  → 3.83 V typ (3.65–3.97 V)   > 3.465 V (3.3 + 5 %) ✓
+5 V:   10k·(5.75/1.06 − 1) = 44.2k        → 5.75 V typ (5.47–5.96 V)   > 5.25 V ✓
+12 V:  10k·(13.5/1.06 − 1) = 117k → 118k  → 13.6 V typ (12.9–14.1 V)   > 12.6 V ✓,  < 24 V abs max ✓</div>
+    <p class="note">This is what catches a bench PSU set to 12 V and plugged into the 5 V jack. The channel opens before the DUT sees it.</p>
+    <h3>4 · Pin-voltage checks (PR1, OV ≤ 5.5 V recommended)</h3>
+    <div class="eq">PR1 @ +5 %:  3.465·10/12.1 = 2.86 V   5.25·10/18.25 = 2.88 V   12.6·10/44.8 = 2.81 V   ✓
+OV  @ trip:  ≈ 1.06 V by design                                                     ✓</div>
+    <h3>5 · Fast-switchover droop</h3>
+    <div class="eq">V_OUT,min = V_SW − t_FSW · I_OUT / C_OUT
+U5 (3.3 V, 2×22 µF, 1 A):    3.00 − 5 µs·1 A/44 µF  = 3.00 − 0.114 = 2.89 V
+U5 (3.3 V, 2×22 µF, 0.3 A):  3.00 − 0.034            = 2.97 V</div>
+    <p class="note">This is why the stage-B outputs get 2 × 22 µF. Derate the 10 V X7R parts for DC bias at 5 V; if your DUTs draw near 1 A, go to 3 × 22 µF on +5V_OUT.</p>
+    <h3>6 · Current limit</h3>
+    <div class="eq">I_LIM ≈ 65.2 / R_ILM^0.861   (R in kΩ, fit to the TPS2121 table)
+R_ILM = 100k → 65.2 / 52.7 = 1.24 A typ   (80k → 1.5 A typ, 1.0–2.0 A per datasheet)</div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">06</span>Fixes to the V0 capture</h2>
+  <div class="panel fixes">
+    <div class="fix"><span class="sev hi">Must</span><p><strong>U3 is wired from the wrong example.</strong> The 10.2 kΩ / 5 kΩ CP2 divider is TI's §10.5 XCOMP circuit, where CP2 tracks IN2. In XREF mode CP2 goes to the fixed 2.5 V reference, and every value is redone in section 03.</p></div>
+    <div class="fix"><span class="sev hi">Must</span><p><strong>ILM, SS and ST look unconnected</strong> on both TPS2121 instances. ILM needs 18–100 kΩ, otherwise there's no defined current limit. SS needs a capacitor.</p></div>
+    <div class="fix"><span class="sev hi">Must</span><p><strong>There is no Stack input.</strong> J1 pins 1–4 are the muxed <em>outputs</em> to the DUT, so stack rails need their own connector (assumed: <code>J_STK</code>, a second BM12B-GHS-TBT with the same pinout).</p></div>
+    <div class="fix"><span class="sev md">Should</span><p><strong>TPS2121 parts are split across both sheets.</strong> One U3 sits on sheet 1, a second on sheet 2, and there are unannotated <code>R?</code> parts. Move all six muxes to <code>Power_Mux.SchDoc</code>, then run Tools » Annotation » Annotate Schematics.</p></div>
+    <div class="fix"><span class="sev md">Should</span><p><strong>Power the CAN chips from the Pico's 3V3</strong> (<code>+3V3_RPI</code>), not the muxed rail. Otherwise a stack-powered board with no USB back-powers the unpowered RP2040 through its SPI pins. Adding 33 Ω series resistors on SWDIO/SWCLK limits the reverse case into an unpowered DUT.</p></div>
+    <div class="fix"><span class="sev md">Should</span><p><strong>The P1 5V↔5V_RF jumper now shorts two mux outputs</strong> when both rails are sourced. Keep it only for USB-only bench use, with a silkscreen warning "REMOVE IF 5V_RF SOURCED", or drop it.</p></div>
+    <div class="fix"><span class="sev md">Should</span><p><strong>PSU banana inputs need TVS diodes</strong> (SMBJ3.3A, SMBJ5.0A ×2, SMBJ13A). Hot-plugging leads into ceramics rings to about 2× V<sub>IN</sub>, and the TVS also clamps a reversed lead to about −1 V. The TPS2121 is only rated to −0.3 V.</p></div>
+    <div class="fix"><span class="sev lo">Tidy</span><p>Rename nets: <code>+5V_BNN/+3.3V_BNN</code> → <code>+5V_PSU/+3V3_PSU</code>, <code>+5V_PRI</code> → <code>+5V_PU</code> / <code>+5V_OUT</code> as appropriate, BOM typo <code>+5V_INN</code>. Mark BOM line 9 (TPS2113 402 Ω ILIM) and line 15 as removed.</p></div>
+    <div class="fix"><span class="sev lo">Tidy</span><p>Set Project » Project Options » Options » Net Identifier Scope to <em>Global (Netlabels and ports global)</em> so the <code>ST_*</code> net labels connect across the flat sheets.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">07</span>BOM additions</h2>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>Qty</th><th>Part</th><th>Value / MPN</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr><td class="n">6</td><td>Power mux</td><td class="n">TPS2121RUXR</td><td>U3 U5 U7 U8 U9 U10 (BOM line 26)</td></tr>
+        <tr><td class="n">1</td><td>Aux LDO</td><td class="n">TLV70433DBVR</td><td>U14 · +3V3_AUX</td></tr>
+        <tr><td class="n">1</td><td>Shunt reference</td><td class="n">LM4040B25IDBZR</td><td>U15 · XREF_2V5</td></tr>
+        <tr><td class="n">5</td><td>Dual Schottky, CC</td><td class="n">BAT54C,215</td><td>D4–D8 · VAUX OR</td></tr>
+        <tr><td class="n">27</td><td>Resistor 10.0 kΩ 0805</td><td class="n">RC0805FR-0710KL</td><td>6 PR1 R<sub>B</sub>, 9 OV R<sub>B</sub>, 6 ST pull-ups, 6 GPIO series</td></tr>
+        <tr><td class="n">6</td><td>Resistor 100 kΩ 1 %</td><td class="n">RC0805FR-07100KL</td><td>R<sub>ILM</sub></td></tr>
+        <tr><td class="n">6</td><td>PR1 tops</td><td class="n">2.10k ×2 · 8.25k ×3 · 34.8k</td><td>one per mux</td></tr>
+        <tr><td class="n">6</td><td>Hysteresis</td><td class="n">54.9k ×2 · 150k ×3 · 287k</td><td>PR1 → ST</td></tr>
+        <tr><td class="n">9</td><td>OV tops</td><td class="n">26.1k ×2 · 44.2k ×5 · 118k ×2</td><td>OV dividers</td></tr>
+        <tr><td class="n">1</td><td>Resistor 2.00 kΩ</td><td class="n">RC0805FR-072KL</td><td>LM4040 bias</td></tr>
+        <tr><td class="n">1</td><td>Resistor 464 Ω (change)</td><td class="n">RC0805FR-07464RL</td><td>R5 · MIC2544 0.5 A</td></tr>
+        <tr><td class="n">24+</td><td>0.1 µF X7R 0805</td><td class="n">C0805C104J5RACTU</td><td>IN1/IN2/OUT ×6, SS ×6 (line 1)</td></tr>
+        <tr><td class="n">8</td><td>22 µF 10 V X7R 1206</td><td class="n">GCM31CR71A226KE02K</td><td>U3, U7: 1 each · U5, U8, U9: 2 each</td></tr>
+        <tr><td class="n">2</td><td>10 µF 35 V X7R 1206</td><td class="n">CGA5L1X7R1V106K160AE</td><td>U10 output</td></tr>
+        <tr><td class="n">2</td><td>1 µF X7R 25 V</td><td class="n">any 0805</td><td>U14 in/out</td></tr>
+        <tr><td class="n">4</td><td>TVS (recommended)</td><td class="n">SMBJ3.3A · SMBJ5.0A ×2 · SMBJ13A</td><td>PSU banana inputs</td></tr>
+        <tr><td class="n">1</td><td>Stack input connector</td><td class="n">BM12B-GHS-TBT</td><td>J_STK (pending your answer)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">08</span>Working locally in Altium, uploading later</h2>
+  <div class="panel">
+    <ol>
+      <li><strong>Lock in the current state first.</strong> Run Save to Server or Commit once, so the workspace holds a known V1 baseline before you branch off.</li>
+      <li><strong>Make a detached copy.</strong> Project » Project Packager → tick <em>Unlink project from the server during packaging</em> → save the zip to a short local path (e.g. <code>C:\SDSL\SquidDebugger\</code>; Altium caps full paths at 260 characters). Unzip it and open the <code>.PrjPcb</code> from there.</li>
+      <li><strong>Confirm it's local.</strong> The Projects panel should show no version-control icons. If any remain, open Project Options » General → sync button → Unlink, then save. Rename the project to <code>Debugging Board V2</code> now, so nothing collides with V1 later.</li>
+      <li><strong>Turn on local safety nets.</strong> Preferences » Data Management » Backup: Auto Save every 10 min, keep 10 versions. Also enable Local History and tick <em>Add autosaved documents to history</em>. That gives you timestamped zips without git.</li>
+      <li><strong>Parts:</strong> components placed from the SDSL workspace library keep their workspace links. Stay signed in to place new ones; the project itself saves locally.</li>
+      <li><strong>Upload when ready.</strong> Right-click the project → Make Project Available Online, tick Version Control, and pick a folder. It goes up as a new workspace project with fresh history.</li>
+    </ol>
+  </div>
+</section>
+
+</div>
