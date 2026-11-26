@@ -9,6 +9,7 @@ design can be checked in CI or on a machine without Altium.
 |---|---|
 | `python tools/schnet.py hardware/DebugBoard.SchDoc` | Prints components and nets of a sheet (geometric netlist). |
 | `python tools/verify_gen.py` | Checks sheets 2–5 pin-by-pin against the design spec in `gen_sheet2.py`. Expect `errors=0`. |
+| `python tools/verify_sheet1.py` | Checks sheet 1 against its frozen source: every net, its pins and its name. Expect `errors=0`. |
 | `python tools/compare_nets.py a.SchDoc b.SchDoc` | Connectivity diff of two versions of a sheet. Use it before and after any cosmetic edit. |
 | `python tools/libpins.py some.SchLib` | Lists symbol pins and linked footprints of a library (works on IntLibs too). |
 | `python tools/calc_v1.py` | Recomputes every resistor/threshold value in the power design. |
@@ -47,6 +48,23 @@ Gotchas learned the hard way:
   **Save None** to any offer to save the old copies.
 - Moves must stay on the grid (multiples of 100 mil), or wires stop touching pins.
 - Empty `||` segments inside records are significant and must be preserved byte-for-byte.
+
+## How sheet 1 is made
+
+`tools/gen_sheet1.py` redraws sheet 1 in the same wired style. Its input is `tools/templates/sheet1_source.SchDoc`,
+the hand-captured sheet 1 frozen on Nov 26, 2026. Each placed part is reused as its own template, so symbols,
+footprints, parameters and designators carry over unchanged. Layouts are one function per block. Frame boxes are in
+`BOXES` (ANSI B sheet; the title block, revision table and disclaimer are kept clear).
+
+```
+python tools/gen_sheet1.py hardware/DebugBoard.SchDoc
+python tools/verify_sheet1.py
+```
+
+`verify_sheet1.py` also flags a name used as both a net label and a port. Altium only joins labels to labels and
+ports to ports, so such a name splits the net. That's why P4's SWD pins use net labels, matching the J1 side.
+To change a part or value on sheet 1: edit it in Altium, copy the saved sheet over `sheet1_source.SchDoc`, then
+regenerate. Otherwise stop using the generator for sheet 1.
 
 `tools/oneoff/` holds the scripts used once for V1 edits to sheet 1 (Pico ports, re-layout, cap move). They're kept
 for the record.

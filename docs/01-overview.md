@@ -90,7 +90,7 @@ These match the SquidSat EPS rails (2S Li-ion → regulators):
 | 4 | `DebugBoard3V3Mux.SchDoc` | 3V3 power mux U3 (PSU vs. USB → +3V3_TGT) |
 | 5 | `DebugBoard5VMux.SchDoc` | 5V power mux U5 (PSU vs. VBUS → +5V_TGT) |
 
-Sheets 2–5 are drawn in a **wired** style: real wires from the pins, parts hanging off the lines (caps under rails,
+All five sheets are drawn in a **wired** style: real wires from the pins, parts hanging off the lines (caps under rails,
 divider stacks rail → R → node → R → GND), power-port symbols for rails, ports only for signals that cross sheets,
 and small net labels on internal nodes (OV1_x, PR1_x, ILM_x …) so each node can be probed by name.
 

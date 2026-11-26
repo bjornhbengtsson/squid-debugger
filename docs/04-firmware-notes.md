@@ -17,7 +17,8 @@ The hardware assumes the firmware follows these rules.
   own reset pull-up.
 - **Keep SWCLK/SWDIO/SWO/UART Hi-Z until the target rail is confirmed up** (from the ADC, or by sensing the target),
   to avoid back-powering an unpowered target.
-- Series resistors are fitted: 100 Ω (SWCLK, SWDIO, RESET, UART_TX) and 1 kΩ (SWO, UART_RX).
+- Series resistors are fitted: 100 Ω (SWCLK, SWDIO, RESET, UART_TX) and 1 kΩ (SWO, UART_RX). The Pico-side nets are
+  named `PICO_SWCLK` … `PICO_UART_RX`.
 
 ## CAN (MCP2515 on SPI1)
 - SPI ≤ 10 MHz. Crystal 16 MHz.

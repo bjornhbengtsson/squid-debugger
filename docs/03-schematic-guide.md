@@ -4,6 +4,10 @@ Every part on the board and why it's there. Sections match the boxed headings on
 
 ## Sheet 1: `DebugBoard.SchDoc` (main board, 46 parts)
 
+Drawn in the same wired style as the power sheets (see [the screenshot](../screenshots/V1_sheet1_wired.jpg)).
+Inside a block, follow the wires. A signal that leaves its block ends in a port with the net name. Rails use power
+symbols. Unused pins carry a red No-ERC cross.
+
 ### Raspberry Pi Pico
 - **U1** Raspberry Pi Pico: USB device to the PC, runs the debugger firmware. Powered from USB VBUS.
   Its 3.3 V output (`+3V3_RPI`) powers only the debugger's own logic (the CAN chips).
@@ -11,6 +15,9 @@ Every part on the board and why it's there. Sections match the boxed headings on
   Pico isn't (RP2040 pins tolerate only IOVDD + 0.5 V), and they damp ringing:
   - **R2 / R4 / R8 / R11 = 100 Ω** on SWCLK, SWDIO, MCU_RESET and UART_TX (Pico-driven).
   - **R9 / R12 = 1 kΩ** on SWO and UART_RX (target-driven inputs, so they get the larger value).
+  - They are drawn beside the connector they protect (J1 in Debug Port, P2 in UART). The Pico side of each one is
+    the net `PICO_<signal>` (`PICO_SWCLK`, `PICO_SWDIO`, `PICO_MCU_RESET`, `PICO_SWO`, `PICO_UART_TX`, `PICO_UART_RX`);
+    the connector side keeps the plain name (`SWCLK` …).
 - Ports on the spare pins connect to sheets 2/3: `EN_x` (GP16–19), `ADC_x` (GP26–28), `PICO_ST_x` (GP14/15).
 
 ### CAN Transceiver
@@ -26,7 +33,8 @@ Every part on the board and why it's there. Sections match the boxed headings on
   - **R10 10 k**: RESET pull-up.
   - **C9 100 nF**: supply decoupling.
   - TX0RTS–TX2RTS are unused (internal pull-ups); RX0BF/RX1BF/CLKOUT are unused outputs.
-- **Y1 16 MHz** crystal with **C7 / C8 22 pF** load caps. 16 MHz is within the MCP2515's 25 MHz limit at 3.3 V.
+- **Y1 16 MHz** crystal with **C7 / C8 22 pF** load caps. Y1 is drawn turned 180°, below the OSC pins: OSC1 runs
+  round the outside to Y1's left terminal and OSC2 goes to its right terminal, so the two lines never cross. 16 MHz is within the MCP2515's 25 MHz limit at 3.3 V.
   (Open item: check Y1's load capacitance spec.)
 
 ### VBUS Current Limit

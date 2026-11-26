@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from schgen import *
 
 U = FRAC
+CH = 5.6          # label character width, 10-mil units (Times New Roman 10)
 PAIRS = [('Location.X', 'Location.Y'), ('Corner.X', 'Corner.Y')] + [(f'X{i}', f'Y{i}') for i in range(1, 50)]
 
 def rot_pt(x, y, q):
@@ -24,7 +25,9 @@ class Block:
         self.pins = []                  # absolute pin tips (x,y)
 
     # ---------------------------------------------------------------- parts
-    def part(self, tpl, des, comment, pinmap, pin, at, rot=0, label='right'):
+    def part(self, tpl, des, comment, pinmap, pin, at, rot=0, label=None):
+        """label: None = legacy (labels moved right of the body only when rotated), 'keep' = template positions,
+        'right' / 'left' / 'above' / 'below' / 'split' (designator above, value below) = always placed."""
         """place `tpl` rotated by rot quarter-turns (CCW) so that pin `pin` tip lands on `at`."""
         px, py, _ = tpl.pins()[pin]
         rx, ry = rot_pt(px / U, py / U, rot)
@@ -41,6 +44,7 @@ class Block:
     def pwr(self, net, at, direction=1): self.items.append(('pwr', net, at, direction))
     def port(self, net, at, toward_left): self.items.append(('port', net, at, toward_left))
     def label(self, net, at): self.items.append(('label', net, at))
+    def noerc(self, at): self.items.append(('noerc', at))
 
     # ---------------------------------------------------------------- render
     def render(self, ox, oy, put, out, instantiate_fn):
@@ -72,17 +76,36 @@ class Block:
                             if r.get(k) is not None: r.set(k, round((float(r.get(k)) + 90 * rot) % 360, 3))
                     elif t == '1':
                         r.set('Orientation', rot % 4)
+            mode = label if label is not None else ('right' if rot % 4 else 'keep')
+            if mode != 'keep':
                 # labels: horizontal, beside the body
                 body = [(getc(r, a), getc(r, b)) for r in recs if r.get('RECORD') in ('6', '13', '14', '12', '7')
                         for a, b in PAIRS if r.get(a) is not None and r.get(b) is not None]
+                for r in recs:          # arcs: add their radius (an inductor is mostly arcs)
+                    if r.get('RECORD') == '12':
+                        cx_, cy_, rr = getc(r, 'Location.X'), getc(r, 'Location.Y'), getc(r, 'Radius')
+                        body += [(cx_ - rr, cy_ - rr), (cx_ + rr, cy_ + rr)]
                 if body:
-                    bx1 = max(x for x, _ in body); by = (min(y for _, y in body) + max(y for _, y in body)) // 2
-                    for r in recs:
-                        if r.get('RECORD') in ('34', '41') and r.get('IsHidden') != 'T':
-                            r.delete('Orientation')
-                            is_des = r.get('RECORD') == '34'
-                            setc(r, 'Location.X', bx1 + 6 * U)
-                            setc(r, 'Location.Y', by + (2 * U if is_des else -8 * U))
+                    bx0 = min(x for x, _ in body); bx1 = max(x for x, _ in body)
+                    by0 = min(y for _, y in body); by1 = max(y for _, y in body); by = (by0 + by1) // 2; bxc = (bx0 + bx1) // 2
+                    vis = [r for r in recs if r.get('RECORD') in ('34', '41') and r.get('IsHidden') != 'T'
+                           and (r.get('RECORD') == '34' or (r.get('Name') or '').lower() == 'comment')]
+                    for r in recs:      # stray visible parameters (hashes etc.) would land far away: hide them
+                        if r.get('RECORD') == '41' and r.get('IsHidden') != 'T' and r not in vis: r.set('IsHidden', 'T')
+                    for r in vis:
+                        r.delete('Orientation'); r.delete('Justification'); is_des = r.get('RECORD') == '34'
+                        w = round(CH * len(r.get('Text') or '') * U)
+                        if mode == 'right':
+                            x, y = bx1 + 6 * U, by + (2 * U if is_des else -8 * U)
+                        elif mode == 'left':
+                            x, y = bx0 - 6 * U - w, by + (2 * U if is_des else -8 * U)
+                        elif mode == 'above':
+                            x, y = bxc - w // 2, by1 + (13 * U if is_des else 4 * U)
+                        elif mode == 'below':
+                            x, y = bxc - w // 2, by0 - (10 * U if is_des else 19 * U)
+                        else:   # split
+                            x, y = bxc - w // 2, (by1 + 3 * U) if is_des else (by0 - 10 * U)
+                        setc(r, 'Location.X', x); setc(r, 'Location.Y', y)
             out.extend(recs)
         for pl in self.wires:
             for a, b in zip(pl, pl[1:]):
@@ -99,6 +122,8 @@ class Block:
                 setc(p, 'Location.X', x - w * U if left else x); setc(p, 'Location.Y', y)
             elif it[0] == 'label':
                 p = put('label', Text=it[1]); x, y = T(it[2]); setc(p, 'Location.X', x); setc(p, 'Location.Y', y)
+            elif it[0] == 'noerc':
+                p = put('noerc'); x, y = T(it[1]); setc(p, 'Location.X', x); setc(p, 'Location.Y', y)
         for j in self.junctions():
             p = put('junction'); x, y = T(j); setc(p, 'Location.X', x); setc(p, 'Location.Y', y)
 
@@ -124,7 +149,7 @@ class Block:
         for pl in self.wires:
             for x, y in pl: xs.append(x); ys.append(y)
         for tpl, des, cm, pm, px, py, rot, label in self.parts:
-            x0, y0, x1, y1 = (v / U for v in tpl.bbox())
+            x0, y0, x1, y1 = (v / U for v in (tpl.gbbox() if hasattr(tpl, 'gbbox') else tpl.bbox()))
             for cx, cy in ((x0, y0), (x1, y1), (x0, y1), (x1, y0)):
                 a, b = rot_pt(cx, cy, rot); xs.append(px + a); ys.append(py + b)
             xs.append(px + 60)

@@ -281,7 +281,37 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
   - keep the label-per-pin style (compact, but the circuit can't be followed by eye);
   - put each single-input switch on its own sheet too (consistent, but 2 near-empty sheets).
 
+## 22. Sheet 1 redrawn in the wired style; off-grid ports fixed (DONE Nov 26)
+- **What:**
+  - Sheet 1 is now generated (`tools/gen_sheet1.py`) in the same style as sheets 2–5. It has the same 10 blocks,
+    with real wires inside each block, and ports only for signals that leave a block.
+  - The frozen hand capture (`tools/templates/sheet1_source.SchDoc`) is the source, and every part is reused as its own
+    template, so footprints, parameters and designators are unchanged.
+  - **New layout (ANSI B):** Pico / CAN Transceiver / CAN Controller in the left column. Debug Port, Banana Jacks and
+    Mounting Holes on top. VBUS Current Limit and UART in the middle. Buck converter, then Header Breakout, at the bottom.
+  - **Series resistors** R2/R4/R8/R9 now sit next to J1, and R11/R12 next to P2.
+    - Their Pico-side nodes, unnamed before, are now `PICO_SWCLK`, `PICO_SWDIO`, `PICO_MCU_RESET`, `PICO_SWO`,
+      `PICO_UART_TX` and `PICO_UART_RX`. The connector-side nets keep their names.
+    - This lets the Pico block be a clean pin-to-port symbol, and the UART LED taps sit on a wired TX/RX line.
+  - **Crystal:** Y1 is turned 180° below the OSC pins, so OSC1/OSC2 reach it without crossing.
+  - **No-ERC** markers on all unused pins (Pico GP0/1/22, RUN, VSYS, 3V3_EN, ADC_VREF; MCP2515 TXnRTS/RXnBF/CLKOUT;
+    MIC2544 NC). Before, the MCP2515 TXnRTS pins had dangling wires, which gave 3 "floating input" errors.
+  - The **CAN differential-pair directive** was dropped. Altium needs `_P`/`_N` net names for a pair, so with
+    CAN_H/CAN_L it only produced 2 errors. Define the pair in the PCB (Differential Pair Editor) instead.
+  - The stale "5V Input" text was dropped; the ILIM note is kept.
+  - The 12 off-grid ports are gone, because every object is regenerated on the 100-mil grid.
+- **Verified:**
+  - `verify_sheet1.py`: 46/46 parts, all 69 nets have identical pins and names (except the 6 renames above), 0 errors.
+  - Altium Validate: **6 errors** (was 11), all the known TPS2121 ones (OUT1/OUT8 on one net, ST tied to GND on U7/U8).
+    No off-grid warnings on any sheet.
+- **Caught on the way:** Altium joins a net label only to net labels and a port only to ports. P4's SWD pins at first
+  had ports while J1's wires had labels, which split 4 nets. They now use labels, and the verifier flags this case.
+- **Backup:** `_backup/DebugBoard_before_wired_20261126_1523.SchDoc` (local, gitignored) and the source template.
+- **Alternatives:**
+  - keep the series resistors at the Pico pins (they'd need a fan-out of jogged wires at 100-mil pin pitch);
+  - one big wired drawing with no ports between blocks (it'd be a tangle across the Pico's 40 pins);
+  - keep CAN_OSC as labels (it'd be simpler, but you couldn't follow the line).
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.
-- Sheet 1: 12 pre-existing off-grid ports (CAN_RX/TX, CAN_SPI_CS, UART_RX/TX, MCU_RESET). Cosmetic; snap them in Altium.

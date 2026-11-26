@@ -44,6 +44,7 @@ the PCB file is still the V0 layout.
   ```
   python tools/schnet.py hardware/DebugBoard.SchDoc          # netlist of a sheet
   python tools/verify_gen.py                                 # sheets 2–5 vs. the design spec
+  python tools/verify_sheet1.py                              # sheet 1 vs. its source
   ```
 
 ## Team
