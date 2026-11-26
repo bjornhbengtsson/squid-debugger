@@ -2,12 +2,12 @@
 import sys, io, contextlib, os
 sys.path.insert(0, os.path.dirname(__file__))
 D = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'hardware')
-argv = sys.argv; sys.argv = ['x', os.devnull, os.devnull]
+argv = sys.argv; sys.argv = ['x', os.devnull, os.devnull, os.devnull, os.devnull]
 with contextlib.redirect_stdout(io.StringIO()):
     import gen_sheet2 as G
 sys.argv = argv
 from schnet import extract
-files = sys.argv[1:] or [os.path.join(D, 'DebugBoardMuxes.SchDoc'), os.path.join(D, 'DebugBoardPowerControl.SchDoc')]
+files = sys.argv[1:] or [os.path.join(D, f) for f in ('DebugBoardMuxes.SchDoc', 'DebugBoardPowerControl.SchDoc', 'DebugBoard3V3Mux.SchDoc', 'DebugBoard5VMux.SchDoc')]
 expect = {des: (cm, pm) for _, parts in G.blocks for _, des, cm, pm in parts}
 seen, bad = [], 0
 for f in files:

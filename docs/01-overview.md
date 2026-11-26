@@ -85,7 +85,13 @@ These match the SquidSat EPS rails (2S Li-ion → regulators):
 | Sheet | File | Contents |
 |---|---|---|
 | 1 | `DebugBoard.SchDoc` | Pico, CAN transceiver + controller, USB current limit + buck, Debug Port, banana jacks, UART, headers |
-| 2 | `DebugBoardMuxes.SchDoc` | Power Path: TVS, AUX supply + 2.5 V reference, the four TPS2121 rail switches |
+| 2 | `DebugBoardMuxes.SchDoc` | Power Path: TVS, AUX supply + 2.5 V reference, 5V RF switch (U7), 12V switch (U8) |
 | 3 | `DebugBoardPowerControl.SchDoc` | Rail enable (FETs + DIP), rail monitors (ADC dividers, mux status) |
+| 4 | `DebugBoard3V3Mux.SchDoc` | 3V3 power mux U3 (PSU vs. USB → +3V3_TGT) |
+| 5 | `DebugBoard5VMux.SchDoc` | 5V power mux U5 (PSU vs. VBUS → +5V_TGT) |
+
+Sheets 2–5 are drawn in a **wired** style: real wires from the pins, parts hanging off the lines (caps under rails,
+divider stacks rail → R → node → R → GND), power-port symbols for rails, ports only for signals that cross sheets,
+and small net labels on internal nodes (OV1_x, PR1_x, ILM_x …) so each node can be probed by name.
 
 Sheets connect by **net name** (project Net Identifier Scope = Global, ports name nets).

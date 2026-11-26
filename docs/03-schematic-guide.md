@@ -62,7 +62,14 @@ Every part on the board and why it's there. Sections match the boxed headings on
 - **P3**: the four `_TGT` rails + GND on 0.1" pins.
 - **P4**: SWD + CAN on 0.1" pins, for flying-lead debugging.
 
-## Sheet 2: `DebugBoardMuxes.SchDoc` (Power Path, 65 parts)
+## Sheets 2, 4, 5: power path (65 parts)
+
+Sheet 2 `DebugBoardMuxes.SchDoc` (31 parts) holds Bench Inputs, AUX & 2.5V Reference, the 5V RF and 12V switches.
+The two dual-input muxes each have their own sheet: 3V3 on sheet 4 `DebugBoard3V3Mux.SchDoc`, 5V on sheet 5
+`DebugBoard5VMux.SchDoc` (17 parts each). How to read a mux sheet, left to right: the two input rails enter at the top
+left with their input caps, the three divider stacks (OV1, OV2, PR1) hang below, the BAT54A disable diode joins both
+OV nodes to the `DIS_x` port, and the OUT rail leaves at the top right over its output caps, ILM resistor and SS cap.
+The two cathodes of the BAT54A go K1 → OV2 and K2 → OV1. The diodes are identical, and this order avoids a wire crossing.
 
 ### Bench Inputs
 - **D4–D6 SMBJ5.0A, D7 SMBJ13A**: TVS clamps on +3V3_PSU, +5V_PSU, +5V_RF_PSU and +12V_PSU.
@@ -74,7 +81,7 @@ Every part on the board and why it's there. Sections match the boxed headings on
 - **U9 TLV70433** → `+3V3_AUX`, with **C28 1 µF** on its output (required for stability).
 - **R13 2.00 k + U10 LM4040-2.5**: the `XREF_2V5` reference, with **C29 1 µF**.
 
-### 3V3 Power Mux: U3 TPS2121 (IN1 = +3V3_PSU, IN2 = +3V3_USB → +3V3_TGT)
+### 3V3 Power Mux (sheet 4): U3 TPS2121 (IN1 = +3V3_PSU, IN2 = +3V3_USB → +3V3_TGT)
 | Part | Role |
 |---|---|
 | C6, C26 | 1 µF input caps on IN1 / IN2 |
@@ -88,17 +95,17 @@ Every part on the board and why it's there. Sections match the boxed headings on
 | C30 100 nF | soft start |
 | C31, C32 22 µF | output caps |
 
-### 5V Power Mux: U5 (IN1 = +5V_PSU, IN2 = +VBUS_PROT → +5V_TGT)
+### 5V Power Mux (sheet 5): U5 (IN1 = +5V_PSU, IN2 = +VBUS_PROT → +5V_TGT)
 Same structure as U3: C2/C3 input caps, R23 8.25k / R24 10.0k PR1 (4.52 V), R25 150k / R26 10.0k hysteresis/ST,
 D13 PR1 clamp, R29/R30 and R27/R28 44.2k/10.0k OV dividers (5.75 V), D14 disable diodes, R31 current limit,
 C33 soft start, C34/C35 output caps.
 
-### 5V RF Switch: U7 (IN1 = +5V_RF_PSU only → +5V_RF_TGT)
+### 5V RF Switch (sheet 2): U7 (IN1 = +5V_RF_PSU only → +5V_RF_TGT)
 Single input: IN2/PR1/CP2/OV2/ST tied to GND.
 - C24 input cap, R32 44.2k / R33 10.0k OV1 divider, D15 disable diode, R34 current limit, C36 soft start,
   C37/C38 output caps.
 
-### 12V Switch: U8 (IN1 = +12V_PSU only → +12V_TGT)
+### 12V Switch (sheet 2): U8 (IN1 = +12V_PSU only → +12V_TGT)
 Like U7:
 - C25 1 µF **50 V** input cap, R35 118k / R36 10.0k OV1 (13.6 V), D16 disable diode, R37 current limit,
   C39 soft start, C40/C41 **10 µF 35 V** output caps.

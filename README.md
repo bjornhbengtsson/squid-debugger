@@ -11,14 +11,14 @@ It plugs into any SquidSat board through the **Squid Standard Debug Port** (J1, 
 
 A Raspberry Pi Pico (RP2040) is the brain: USB to the PC on one side, debug interfaces and power control on the other.
 
-**Status: V1 schematic captured and verified** (3 sheets, 139 parts). PCB layout for V1 is not started yet;
+**Status: V1 schematic captured and verified** (5 sheets, 139 parts; power sheets drawn in a wired, easy-to-follow style). PCB layout for V1 is not started yet;
 the PCB file is still the V0 layout.
 
 ## Repository layout
 
 | Path | What's in it |
 |---|---|
-| [`hardware/`](hardware) | The Altium Designer project. Open `Debugging Board V1.PrjPcb`. Sheets 1–3, PCB (V0 layout), BOM doc, OutJobs, libraries. |
+| [`hardware/`](hardware) | The Altium Designer project. Open `Debugging Board V1.PrjPcb`. Sheets 1–5, PCB (V0 layout), BOM doc, OutJobs, libraries. |
 | [`docs/`](docs) | **Start here.** How the board works and why it's designed this way. |
 | [`design/`](design) | Design record: `V1_PLAN.md` (all math + datasheet review), `V1_CHANGELOG.md` (every change with reasons and alternatives), `V1_PARTS_LINKS.md`, block diagrams. |
 | [`tools/`](tools) | Python tools that read, check and generate the Altium files (no Altium needed to run them). |
@@ -37,13 +37,13 @@ the PCB file is still the V0 layout.
 
 ## Quick start
 
-- **Altium:** open `hardware/Debugging Board V1.PrjPcb` in Altium Designer 26.x. Sheets 2 and 3 use the
+- **Altium:** open `hardware/Debugging Board V1.PrjPcb` in Altium Designer 26.x. Sheets 2–5 use the
   local library `hardware/Libraries/SquidDebugger_V1/Project Outputs/SquidDebugger_V1.IntLib` (linked in the project)
   plus SDSL Altium 365 workspace parts.
 - **Check the schematic without Altium** (Python 3 only):
   ```
   python tools/schnet.py hardware/DebugBoard.SchDoc          # netlist of a sheet
-  python tools/verify_gen.py                                 # sheets 2+3 vs. the design spec
+  python tools/verify_gen.py                                 # sheets 2–5 vs. the design spec
   ```
 
 ## Team

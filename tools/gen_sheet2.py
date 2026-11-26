@@ -1,5 +1,5 @@
 """Build Squid Debugger V1 sheet 2 (power path) from V1_PLAN section 3.
-Usage: python tools/gen_sheet2.py hardware/DebugBoardMuxes.SchDoc hardware/DebugBoardPowerControl.SchDoc
+Usage: python tools/gen_sheet2.py hardware/DebugBoardMuxes.SchDoc hardware/DebugBoardPowerControl.SchDoc hardware/DebugBoard3V3Mux.SchDoc hardware/DebugBoard5VMux.SchDoc
 Templates: parts placed on DebugBoardMuxes.SchDoc + generic R / 100 nF from DebugBoard.SchDoc."""
 import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
@@ -79,7 +79,7 @@ def mux(tag, u, in1, in2, out, rt_ov, prio, cout):
         blk += [R(prio[0], in1, pr), R('10.0k', pr, 'GND'), R(prio[1], pr, st), R('10.0k', st, '+3V3_AUX'),
                 ('ZEN', nx('D'), 'BZX84-C4V7', {'3': pr, '1': 'GND'}),
                 R(rt_ov, in2, ov2), R('10.0k', ov2, 'GND'),
-                ('BAT54A', nx('D'), 'BAT54A', {'3': dis, '1': ov1, '2': ov2})]
+                ('BAT54A', nx('D'), 'BAT54A', {'3': dis, '1': ov2, '2': ov1})]
     else:
         pins.update({'2': 'GND', '6': 'GND', '3': 'GND', '4': 'GND', '9': 'GND'})
         blk += [('BAT54A', nx('D'), 'BAT54A', {'3': dis, '1': ov1})]
@@ -108,6 +108,15 @@ for net, tag, rt in (('+3V3_TGT', '3V3', '49.9k'), ('+5V_TGT', '5V', '100k'), ('
 blk += [R('100k', 'ST_3V3', 'PICO_ST_3V3'), R('100k', 'ST_5V', 'PICO_ST_5V')]
 blocks.append(('Rail Monitors', blk))
 
+# ------------------------------------------------------------------ wired (hand-laid) blocks
+from wired import Block
+SPEC = {des: (tk, cm, pm) for _, parts in blocks for tk, des, cm, pm in parts}
+def P(B, des, pin, at, rot=0):
+    tk, cm, pm = SPEC[des]; return B.part(T[tk], des, cm, pm, pin, at, rot)
+
+import wired_blocks
+WIRED = wired_blocks.make(T, SPEC, blocks)
+
 # ------------------------------------------------------------------ layout + emit
 U = FRAC          # one 10-mil unit
 STUB = 20 * U     # 0.2 in
@@ -125,6 +134,12 @@ port_t = Rec(b'|RECORD=18|OwnerPartId=-1|IOType=0|Alignment=1|Width=50|Location.
 wire_t = Rec(b'|RECORD=27|OwnerPartId=-1|LineWidth=1|Color=8388608|UniqueID=AAAAAAAA|LocationCount=2|X1=0|Y1=0|X2=0|Y2=0')
 head_t = Rec(b'|RECORD=4|OwnerPartId=-1|Location.X=0|Location.Y=0|Color=8388608|FontID=17|Text=X|UniqueID=AAAAAAAA')
 line_t = Rec(b'|RECORD=6|OwnerPartId=-1|LineWidth=2|LocationCount=2|X1=0|Y1=0|X2=0|Y2=0|UniqueID=AAAAAAAA')
+
+jct_t = Rec(b'|RECORD=29|OwnerPartId=-1|Location.X=0|Location.Y=0|Color=128')
+KIND = {'wire': None, 'gnd': None, 'pwr': None, 'port': None, 'label': None, 'junction': None}
+def put_kind(kind, **kv):
+    tpl = {'wire': wire_t, 'gnd': gnd_t, 'pwr': pwr_t, 'port': port_t, 'label': lbl_t, 'junction': jct_t}[kind]
+    return put(tpl, **kv)
 
 def is_rail(net): return net.startswith('+') or net in ('VAUX', 'XREF_2V5')
 def port_w(net): return 5 * len(net) + 30
@@ -185,6 +200,9 @@ TB_X, TB_Y = 1100, 285            # title block keep-out: x > TB_X and y < TB_Y
 import itertools
 
 def block_cols(parts, maxh, title=''):
+    if title in WIRED:
+        B = WIRED[title](); x0, y0, x1, y1 = B.bbox(); h = (y1 - y0) + 20; w = (x1 - x0) + 40
+        return [([('WIRED', B, None, None, x0, y0, x1, y1, 0, 0, h)], w)], max(w + 50, len(title) * 14 + 60), h + 75
     cols, col, colh, colw = [], [], 0, 0
     for tplk, des, cm, pm in parts:
         tpl = T[tplk]; x0, y0, x1, y1 = (v / U for v in tpl.bbox()); l, r, t, b = margins(tpl, pm)
@@ -202,14 +220,14 @@ def pack(order, maxh):
     res, bx, by, bandh = [], SHEET_L, TOP, 0
     for bi in order:
         cols, bw, bh = sized[(bi, maxh[bi])]
-        def fits(x, y):
-            right = x + bw
-            if y - bh < FLOOR: return False
-            limit = TB_X if y - bh < TB_Y else SHEET_R
+        def fits(x, y, band):
+            right = x + bw; depth = max(band, bh)          # the whole row gets as deep as its deepest block
+            if y - depth < FLOOR: return False
+            limit = TB_X if y - depth < TB_Y else SHEET_R
             return right <= limit
-        if not fits(bx, by):
+        if not fits(bx, by, bandh):
             bx, by, bandh = SHEET_L, by - bandh, 0
-            if not fits(bx, by): return None
+            if not fits(bx, by, 0): return None
         res.append((bi, bx, by, cols)); bx += bw; bandh = max(bandh, bh)
     return res, by - bandh
 
@@ -229,8 +247,11 @@ def build_sheet(bset, path):
                 r = pack(order, maxh)
                 if r and (best is None or r[1] > best[1]): best = r
     assert best, f'no layout fits A3 for {path}'
-    # sheet font 17 = Times New Roman 24 (sheet-1 heading font)
+    # sheet font 17 = Times New Roman 24 (sheet-1 heading font); 100-mil snap/visible grid like sheet 1
     sh = out[1]; n = int(sh.get('FontIdCount'))
+    for k, v in (('SnapGridSize', 5), ('VisibleGridSize', 10)):     # same as sheet 1: 50-mil snap, 100-mil grid, mils
+        sh.set(k, v); sh.delete(k + '_Frac')
+    sh.set('Display_Unit', 0)
     if n < 17:
         for k in range(n + 1, 18):
             sh.set(f'Size{k}', 24 if k == 17 else 10, after=f'FontName{k-1}'); sh.set(f'FontName{k}', 'Times New Roman', after=f'Size{k}')
@@ -262,6 +283,11 @@ def build_sheet(bset, path):
             for c, w in cols:
                 cy = top - 60
                 for tplk, des, cm, pm, x0, y0, x1, y1, l, t_, h in c:
+                    if tplk == 'WIRED':
+                        B = des; bo_x = round((cx + 20 - x0) / 10) * 10; bo_y = round((cy - 10 - y1) / 10) * 10   # on the 100-mil grid
+                        B.render(bo_x, bo_y, put_kind, out, instantiate)
+                        log.extend((p[1], p[2], title) for p in B.parts)
+                        continue
                     ox = round(cx + l - x0); oy = round(cy - t_ - y1)
                     ox += (-ox) % 10; oy -= oy % 10          # snap right (into own column), down
                     place(T[tplk], des, cm, pm, ox * U, oy * U)
@@ -283,5 +309,7 @@ def build_sheet(bset, path):
     print(path.split('/')[-1], 'parts', len(log), 'bottom', round(best[1]))
     return log
 
-build_sheet([0, 1, 2, 3, 4, 5], sys.argv[1])
-build_sheet([6, 7], sys.argv[2])
+build_sheet([0, 1, 4, 5], sys.argv[1])             # sheet 2: Power Inputs, AUX + reference, 5V RF + 12V switches
+build_sheet([6, 7], sys.argv[2])                   # sheet 3: Power Control
+if len(sys.argv) > 3: build_sheet([2], sys.argv[3])  # sheet 4: 3V3 Power Mux
+if len(sys.argv) > 4: build_sheet([3], sys.argv[4])  # sheet 5: 5V Power Mux

@@ -248,7 +248,40 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
 - **Alternatives:** keep C5 as extra bulk on +3V3_RPI (harmless but redundant); keep the input caps in the Bench Inputs
   box (it's more natural for the PCB to place each one at its IN pin).
 
+## 20. TRIAL: 3V3 Power Mux redrawn in "wired" style on its own sheet (Nov 26, approved)
+- **What:** U3 and its 16 parts are drawn the conventional way.
+  - Real wires run from the pins, and parts hang off the lines (input caps under the IN rails, divider stacks
+    rail → R → node → R → GND, output caps under the OUT rail).
+  - Rails use power-port symbols; only sheet-crossing signals (ST_3V3, DIS_3V3) use ports; there are no wire crossings.
+  - Internal nodes keep small net labels (OV1_3V3, OV2_3V3, PR1_3V3, ILM_3V3, SS_3V3).
+  - New sheet 4 `hardware/DebugBoard3V3Mux.SchDoc`; sheet 2 keeps the other power blocks.
+  - Tools: `tools/wired.py` (part rotation, wiring, auto-junctions); layout in `gen_sheet2.py: wired_mux_3v3()`.
+  - D12/D14: the BAT54A's two cathodes are swapped (K1 = OV2, K2 = OV1). They're identical diodes; the swap avoids a
+    wire crossing.
+- **Verified:** 93/93 parts, every pin on its spec net (`verify_gen.py`), 0 errors.
+- **Alternatives:** keep the label-per-pin style (compact, but hard to follow); one A2 sheet for all four muxes.
+
+## 21. All power blocks redrawn in "wired" style; power path split over sheets 2–5 (DONE Nov 26)
+- **What:** after the 3V3 trial (#20) was approved, every generated block now uses the same wired style.
+  - **Sheet 2** `DebugBoardMuxes`: Bench Inputs (TVS), AUX & 2.5V Reference, 5V RF Switch U7, 12V Switch U8.
+  - **Sheet 3** `DebugBoardPowerControl`: Rail Enable (4× 2N7002 + DIP SW1), Rail Monitors (ADC dividers, ST taps).
+  - **Sheet 4** `DebugBoard3V3Mux`: U3. **Sheet 5** `DebugBoard5VMux` (new): U5, drawn exactly like U3.
+  - Single-input switches (U7/U8): the unused IN2/OV2/CP2/PR1 pins get short GND stubs, and ST is tied to the GND pin.
+  - The layouts live in `tools/wired_blocks.py`, and `tools/wired.py` is the shared drawing engine.
+  - Grid: the generated sheets came from a 1 mm template, so Altium flagged every part "Off grid". They now use
+    sheet 1's grid (50 mil snap, 100 mil visible, mils), and block origins snap to 100 mil.
+    Result: **0 off-grid warnings on sheets 2–5**, and 404 → 94 Validate messages.
+  - Label and port positions adjusted so no text overlaps a part, wire or another label.
+- **Verified:**
+  - `verify_gen.py`: 93/93 parts, every pin on its spec net, 0 errors.
+  - Altium Validate: the same 11 known errors as before. These are TPS OUT1/OUT8 on one net, ST tied to GND on U7/U8,
+    the CAN_H/L differential-pair warning, and the unconnected MCP2515 pins U6-4/5/6.
+- **Alternatives:**
+  - one A2 sheet holding all four muxes (everything in one view, but awkward to print and to read on screen);
+  - keep the label-per-pin style (compact, but the circuit can't be followed by eye);
+  - put each single-input switch on its own sheet too (consistent, but 2 near-empty sheets).
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.
-- Draw sheet 2: 4× TPS2121 blocks, VAUX/XREF, enable FETs + DIP, ADC dividers, TVS.
+- Sheet 1: 12 pre-existing off-grid ports (CAN_RX/TX, CAN_SPI_CS, UART_RX/TX, MCU_RESET). Cosmetic; snap them in Altium.

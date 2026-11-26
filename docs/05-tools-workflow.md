@@ -8,24 +8,34 @@ design can be checked in CI or on a machine without Altium.
 | Command | What it does |
 |---|---|
 | `python tools/schnet.py hardware/DebugBoard.SchDoc` | Prints components and nets of a sheet (geometric netlist). |
-| `python tools/verify_gen.py` | Checks sheets 2 and 3 pin-by-pin against the design spec in `gen_sheet2.py`. Expect `errors=0`. |
+| `python tools/verify_gen.py` | Checks sheets 2–5 pin-by-pin against the design spec in `gen_sheet2.py`. Expect `errors=0`. |
 | `python tools/compare_nets.py a.SchDoc b.SchDoc` | Connectivity diff of two versions of a sheet. Use it before and after any cosmetic edit. |
 | `python tools/libpins.py some.SchLib` | Lists symbol pins and linked footprints of a library (works on IntLibs too). |
 | `python tools/calc_v1.py` | Recomputes every resistor/threshold value in the power design. |
 
-## How sheets 2 and 3 were made
+## How sheets 2–5 were made
 
-`tools/gen_sheet2.py` **generates** both power sheets from a data description of the circuit (the `blocks` list:
+`tools/gen_sheet2.py` **generates** all four power sheets from a data description of the circuit (the `blocks` list:
 every part, value and pin → net). That description mirrors the per-mux table in `design/V1_PLAN.md`.
 It uses `tools/templates/*.SchDoc` (one placed instance of each part) as symbols, lays the blocks out on A3,
 and draws frames and headings in the sheet-1 style.
 
+Every block is drawn in the **wired** style by two modules:
+- `tools/wired.py`: the `Block` class. `part()` places a symbol so a chosen pin lands on a point (with rotation),
+  `wire()`, `gnd()`, `pwr()`, `port()` and `label()` add the rest, and junction dots are added automatically wherever
+  three or more connections meet.
+- `tools/wired_blocks.py`: one hand-laid layout per block (dual mux, single mux, Bench Inputs, AUX, Rail Enable,
+  Rail Monitors), in 10-mil units relative to the block origin.
+
+Block origins snap to 100 mil, and the sheets get sheet 1's grid (50 mil snap, 100 mil visible, mils), so Altium
+reports no off-grid objects.
+
 ```
-python tools/gen_sheet2.py hardware/DebugBoardMuxes.SchDoc hardware/DebugBoardPowerControl.SchDoc
+python tools/gen_sheet2.py hardware/DebugBoardMuxes.SchDoc hardware/DebugBoardPowerControl.SchDoc \n    hardware/DebugBoard3V3Mux.SchDoc hardware/DebugBoard5VMux.SchDoc
 python tools/verify_gen.py
 ```
 
-**Hand edits vs. regeneration:** it's fine to edit sheets 2/3 in Altium from now on, but re-running the generator
+**Hand edits vs. regeneration:** it's fine to edit sheets 2–5 in Altium from now on, but re-running the generator
 overwrites those edits. Either change the spec in `gen_sheet2.py` and regenerate, or stop using the generator.
 
 Low-level pieces: `tools/cfb.py` (Compound File reader), `tools/schgen.py` (record parser/writer, CFB writer,
@@ -33,6 +43,8 @@ component cloning).
 
 Gotchas learned the hard way:
 - A SchDoc's header `Weight` must equal the number of records, or Altium silently stops loading partway through.
+- After regenerating, Altium may hold old copies in memory. Accept "Reload", and answer **Don't Save** /
+  **Save None** to any offer to save the old copies.
 - Moves must stay on the grid (multiples of 100 mil), or wires stop touching pins.
 - Empty `||` segments inside records are significant and must be preserved byte-for-byte.
 
