@@ -12,10 +12,12 @@ Status (Nov 27 2026): **components placed, silkscreen done, DRC run. Not routed.
 | Top | Bottom (flipped view) |
 |---|---|
 | ![top](../screenshots/V1_pcb_top.jpg) | ![bottom](../screenshots/V1_pcb_bottom.jpg) |
+| ![top 3D](../screenshots/V1_pcb_top_3d.jpg) | ![bottom 3D](../screenshots/V1_pcb_bottom_3d.jpg) |
 
-**3D models:** every part except the mounting holes has a 3D body. 17 parts whose footprints had none (SW1, the six
+**3D models:** every part except the mounting holes has a 3D body. 21 parts whose footprints had none (the four eFuses, SW1, the six
 22 µF caps, the nine SOT-23 diodes, U10) get their STEP file from `hardware/Libraries/SquidDebugger_V1/3D` when
-`PlaceV1` runs. Each model's rotation and lift is in the `STEP` table in `tools/pcb_place.py`: the DIP switch and the
+`PlaceV1` runs. The eFuse model is our own simplified drawing (`tools/make_efuse_step.py`); the rest are vendor files.
+Each model's rotation and lift is in the `STEP` table in `tools/pcb_place.py`: the DIP switch and the
 Nexperia SOT-23 files are drawn with Y as the height axis, so they are turned about X; the script then centres the
 turned model on the part's pads.
 
@@ -222,5 +224,5 @@ Found and fixed during this pass:
    pattern DDA0008. In the library its pads are 50 000 mil from its reference point; on the board `FixDDA` has moved
    them onto it. Set the reference point in the library (Edit » Set Reference » Center) so an update from the library
    does not undo that; if it does, run `FixDDA` and then `PlaceV1` again.
-7. **eFuse 3D model:** none yet (U14–U17 are exempt in `pcb_check.py` through `NO_MODEL`).
+7. **eFuse 3D model** is our own simplified drawing (`tools/make_efuse_step.py`). Swap in TI's DDA STEP file if wanted.
 8. **Bottom-side height** is now 1.7 mm (eFuses): confirm against the standoff height.

@@ -48,6 +48,7 @@ Sheets 1–5 as one PDF: [`screenshots/V1_schematic.pdf`](screenshots/V1_schemat
 | Top | Bottom (flipped view) |
 |---|---|
 | ![PCB top](screenshots/V1_pcb_top.jpg) | ![PCB bottom](screenshots/V1_pcb_bottom.jpg) |
+| ![PCB top, 3D](screenshots/V1_pcb_top_3d.jpg) | ![PCB bottom, 3D](screenshots/V1_pcb_bottom_3d.jpg) |
 
 ## Documentation
 

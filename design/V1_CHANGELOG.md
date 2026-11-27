@@ -465,6 +465,19 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
 - **Alternatives:** keep the V0 artwork until the new one is ready (declined: Bjorn does not want the current image).
 - **Images:** `screenshots/V1_pcb_bottom.jpg` still shows the old artwork; Bjorn will take new images.
 
+## 31. 3D model for the eFuses; new board images (DONE Nov 27)
+- **What:** U14–U17 now have a 3D body. The model is our own simplified drawing of TI's DDA package
+  (`TPS259621DDAR_simplified.step`, written by `tools/make_efuse_step.py`): body 4.9 × 3.9 × 1.65 mm, eight gull-wing
+  leads on 1.27 mm pitch, thermal pad, pin-1 dot. Checked in a tilted 3D view from the bottom side: right side up,
+  legs on the pads. It is on the `VERIFIED` list and `NO_MODEL` is empty again.
+- **Why a home-made model:** no SOIC-8 model was on the machine, and a generated one needs no vendor download or
+  licence question. It is a set of boxes, so it shows size and position correctly but not the real lead shape.
+- **Alternatives:** TI's own STEP file for the DDA package (more faithful; swap the file name in the `STEP` table
+  if someone downloads it); an extruded Altium body (no leads at all).
+- **Images:** Bjorn's four views replace the board pictures: `screenshots/V1_pcb_top.jpg`, `V1_pcb_bottom.jpg`,
+  `V1_pcb_top_3d.jpg`, `V1_pcb_bottom_3d.jpg`. They were taken just before the eFuse models were added, so the
+  bottom views show the eFuse pads without bodies.
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.

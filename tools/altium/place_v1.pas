@@ -639,6 +639,7 @@ Begin
   S.Add('Z|BZX84-C4V7,215.stp|90|' + ZRange('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BZX84-C4V7,215.stp', 90));
   S.Add('Z|GCM31CR71A226KE02K.stp|0|' + ZRange('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\GCM31CR71A226KE02K.stp', 0));
   S.Add('Z|LM4040BIM3-2.5_NOPB.stp|0|' + ZRange('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\LM4040BIM3-2.5_NOPB.stp', 0));
+  S.Add('Z|TPS259621DDAR_simplified.step|0|' + ZRange('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\TPS259621DDAR_simplified.step', 0));
   S.SaveToFile('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\tools\altium\pcb_dump.txt'); S.Free;
   ShowMessage('Dump written');
 End;
@@ -707,6 +708,10 @@ Begin
   Body3D('D9', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54C,215.stp', 90, 180, -1.16);
   Body3D('SW1', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\219-4MST.stp', 90, 0, 0.25);
   Body3D('U10', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\LM4040BIM3-2.5_NOPB.stp', 0, 0, 0.0);
+  Body3D('U14', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\TPS259621DDAR_simplified.step', 0, 0, 0.0);
+  Body3D('U15', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\TPS259621DDAR_simplified.step', 0, 0, 0.0);
+  Body3D('U16', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\TPS259621DDAR_simplified.step', 0, 0, 0.0);
+  Body3D('U17', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\TPS259621DDAR_simplified.step', 0, 0, 0.0);
   Clear(ePolyObject); Clear(eTrackObject); Clear(eArcObject); Clear(eViaObject); Clear(eFillObject); Clear(eRegionObject);
   Put('C1', 22.250, 26.100, 90, False);
   Put('C18', 15.600, 107.850, 0, False);
@@ -860,7 +865,7 @@ Begin
   Put('U15', 52.000, 78.500, 0, True);
   Put('U16', 44.500, 31.000, 90, True);
   Put('U17', 16.500, 31.000, 90, True);
-  Put('U2', 20.800, 20.612, 90, False);
+  Put('U2', 20.800, 20.613, 90, False);
   Put('U3', 10.500, 45.300, 0, False);
   Put('U4', 49.700, 102.977, 270, False);
   Put('U5', 51.100, 61.500, 0, False);

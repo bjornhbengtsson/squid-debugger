@@ -150,6 +150,8 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
   tools/silk_art.py) is deferred by the user until everything else is done; source photos are NOT committed.
 - Nov 27 (changelog #30): user had the V0 mantis artwork REMOVED from the bottom silk (ArtOff script; ArtV1 restores it).
   Do not put it back unasked. User takes the PCB images for the repo themself (screenshots/V1_pcb_*.jpg).
+- eFuse 3D model (changelog #31): hardware/Libraries/SquidDebugger_V1/3D/TPS259621DDAR_simplified.step is OUR OWN box model,
+  written by tools/make_efuse_step.py (plain AP214 boxes with colours; Altium reads it fine). Verified tilted, bottom side.
 - Change log for presentation: design/V1_CHANGELOG.md (what/why/alternatives) — append every change.
 - Net scope Global (HierarchyMode=3) DONE. TPS2121RUXR = CMP-019-00076-1 (pins verified).
 - MPS panel is a slide-out + right-click menu: invisible to computer use → user creates workspace parts.

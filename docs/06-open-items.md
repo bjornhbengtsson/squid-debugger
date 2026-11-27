@@ -7,7 +7,6 @@
       (about 3 mA per line today, see docs/02 §2.8).
 - [ ] **eFuse footprint check:** `SOIC127P600X170-9N` (script-made) against TI land pattern DDA0008: pad sizes and
       the 2.4 × 3.1 mm thermal pad. Also set the library footprint's reference point to its centre.
-- [ ] **eFuse 3D model:** no STEP model yet for U14–U17 (exempted in `pcb_check.py` via `NO_MODEL`).
 - [ ] Optional: eFuse `FLT` pins wire-ORed to Pico GP22, so firmware sees an over-current directly.
 - [ ] Optional: D7 SMBJ13A → SMBJ12A (clamps at 19.9 V instead of 21.5 V; the eFuse's maximum is 21 V).
 - [ ] **D4–D6 part choice → SMBJ5.0A** (they currently borrow the SMBJ13A symbol and comment).

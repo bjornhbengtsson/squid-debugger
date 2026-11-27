@@ -151,7 +151,7 @@ put('U17', 16.5, 31.0, 90, 'B')
 for i, d in enumerate(('R69', 'R70', 'R71', 'C48')): put(d, 21.6, 28.2 + 2.8 * i, 0, 'B')
 put('U16', 44.5, 31.0, 90, 'B')
 for i, d in enumerate(('R65', 'R66', 'R67', 'R68', 'C47')): put(d, 39.4, 26.8 + 2.8 * i, 0, 'B')
-NO_MODEL = {'U14', 'U15', 'U16', 'U17'}      # no STEP model yet for the TPS259621 (DDA package): open item
+NO_MODEL = set()                             # parts allowed to have no 3D model (none now)
 
 LOGO = (30.5, 49.3, 0); LOGO_BOX = (23.7, 44.0, 37.3, 54.6)                       # SDSL logo: bottom side, centre
 LABELS = {'+3.3V': (1.5, 76.6), '+5V': (49.6, 76.6), '+12V': (2.0, 26.3), '+5V RF': (47.6, 26.3), 'GND': (28.2, 30.25)}       # GND sits directly under its jack
@@ -169,6 +169,7 @@ STEP.update({d: ('GCM31CR71A226KE02K.stp', 0, 0, 0.0) for d in ('C31', 'C32', 'C
 STEP.update({d: ('BAT54C,215.stp', 90, 180, -1.16) for d in ('D8', 'D9', 'D10')})           # Nexperia SOT-23: height along Y
 STEP.update({d: ('BAT54A,215.stp', 90, 90, -1.16) for d in ('D12', 'D14', 'D15', 'D16')})  # footprint has pads 1, 2 on +X
 STEP.update({d: ('BZX84-C4V7,215.stp', 90, 90, -1.16) for d in ('D11', 'D13')})
+STEP.update({d: ('TPS259621DDAR_simplified.step', 0, 0, 0.0) for d in ('U14', 'U15', 'U16', 'U17')})   # own model: tools/make_efuse_step.py
 # A bounding box cannot tell which way up a model is: the SOT-23s were legs-up twice while every box check passed.
 # So each model file must be listed here after someone has looked at it in a TILTED 3D view, from the side the part
 # is on, and seen the legs pointing down onto the pads. Change a model's rotation in STEP -> remove its line here.
@@ -179,6 +180,7 @@ VERIFIED = {
     'LM4040BIM3-2.5_NOPB.stp': 'tilted 3D view, top side, Nov 27 2026: legs down on the pads',
     'GCM31CR71A226KE02K.stp': 'chip capacitor, same top and bottom; top view, Nov 27 2026',
     '219-4MST.stp': 'top view, Nov 27 2026: actuators up, leads on both pad rows',
+    'TPS259621DDAR_simplified.step': 'tilted 3D view, bottom side, Nov 27 2026: all four right side up, legs down on the pads',
 }
 def unverified_models():
     return sorted({f for f, rx, rz, dz in STEP.values()} - set(VERIFIED))
