@@ -938,8 +938,23 @@ def pas(path):
     L += ['  PCBServer.PostProcess;', '  Board.ViewManager_FullUpdate;',
           "  If Missing <> '' Then ShowMessage('Not on board: ' + Missing) Else ShowMessage('V1 placement done: %d parts, %d designators. 3D models seated: ' + IntToStr(Added) + ' (' + Sizes + ')');" % (len(P), len(DES)),
           'End;']
-    L += art_windows()
+    L += art_windows() + des_fix()
     os.makedirs(os.path.dirname(path), exist_ok=True); open(path, 'w').write('\r\n'.join(L) + '\r\n')
+
+def des_fix():
+    """DesFix: move only the designators that are not where the pins file (or the solver) says, by more than 0.1 mm.
+    Use it after editing tools/des_pins.json by hand; everything else on the board stays untouched."""
+    now = {}
+    for line in open(DUMP_PATH, encoding='latin-1'):
+        f = line.rstrip('\r\n').split('|')
+        if f[0] == 'N' and len(f) >= 9:
+            l, b, r, t_ = (float(v) * 0.0254 for v in f[5:9]); now[f[1]] = ((l + r) / 2, (b + t_) / 2)
+    moves = [(d, x, y, a_) for d, (x, y, a_) in sorted(DES.items()) if d in now and (abs(now[d][0] - x) > 0.1 or abs(now[d][1] - y) > 0.1)]
+    L = ['', 'Procedure DesFix;   { move only the designators that differ from tools/des_pins.json (compared with the last DumpV1) }', 'Begin'] + GET_BOARD + ['  PCBServer.PreProcess;']
+    for _ in range(2):
+        L += [f"  Des('{d}', {x:.3f}, {y:.3f}, {a_});" for d, x, y, a_ in moves]
+    L += ['  PCBServer.PostProcess; Board.ViewManager_FullUpdate;', "  ShowMessage('DesFix: moved %d designators (%s)');" % (len(moves), ' '.join(m[0] for m in moves)[:200]), 'End;']
+    return L
 
 def art_windows():
     """ArtWindows: open small windows in the bottom-side artwork so designators and pads stay clear. Built from the last

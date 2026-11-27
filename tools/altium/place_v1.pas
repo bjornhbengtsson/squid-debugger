@@ -1097,7 +1097,7 @@ Begin
   Des('R38', 32.000, 59.094, 0);
   Des('R39', 28.147, 64.100, 0);
   Des('R4', 18.600, 20.141, 0);
-  Des('R40', 11.725, 67.400, 0);
+  Des('R40', 35.147, 64.100, 0);
   Des('R41', 35.147, 67.400, 0);
   Des('R42', 28.147, 70.500, 0);
   Des('R43', 35.147, 70.500, 0);
@@ -1258,7 +1258,7 @@ Begin
   Des('R38', 32.000, 59.094, 0);
   Des('R39', 28.147, 64.100, 0);
   Des('R4', 18.600, 20.141, 0);
-  Des('R40', 11.725, 67.400, 0);
+  Des('R40', 35.147, 64.100, 0);
   Des('R41', 35.147, 67.400, 0);
   Des('R42', 28.147, 70.500, 0);
   Des('R43', 35.147, 70.500, 0);
@@ -1640,7 +1640,7 @@ Begin
   WipeSmall(55.87, 65.22, 58.63, 66.78);
   WipeSmall(49.17, 13.92, 51.93, 15.47);
   WipeSmall(17.57, 19.37, 19.63, 20.92);
-  WipeSmall(10.34, 66.62, 13.11, 68.18);
+  WipeSmall(33.77, 63.32, 36.53, 64.88);
   WipeSmall(33.77, 66.62, 36.53, 68.18);
   WipeSmall(33.77, 69.72, 36.53, 71.28);
   WipeSmall(33.77, 73.02, 36.53, 74.58);
@@ -1830,7 +1830,7 @@ Begin
   WipeSmall(33.81, 66.60, 36.48, 68.20);
   WipeSmall(30.15, 66.15, 31.95, 68.65);
   WipeSmall(32.05, 66.15, 33.85, 68.65);
-  WipeSmall(10.26, 66.60, 13.19, 68.20);
+  WipeSmall(33.68, 63.30, 36.61, 64.90);
   WipeSmall(30.15, 62.85, 31.95, 65.35);
   WipeSmall(32.05, 62.85, 33.85, 65.35);
   WipeSmall(26.68, 63.30, 29.61, 64.90);
@@ -2197,7 +2197,7 @@ Begin
   CutBox(33.81, 66.60, 36.48, 68.20);
   CutBox(30.15, 66.15, 31.95, 68.65);
   CutBox(32.05, 66.15, 33.85, 68.65);
-  CutBox(10.26, 66.60, 13.19, 68.20);
+  CutBox(33.68, 63.30, 36.61, 64.90);
   CutBox(30.15, 62.85, 31.95, 65.35);
   CutBox(32.05, 62.85, 33.85, 65.35);
   CutBox(26.68, 63.30, 29.61, 64.90);
@@ -2564,7 +2564,7 @@ Begin
   CutBox(33.81, 66.60, 36.48, 68.20);
   CutBox(30.15, 66.15, 31.95, 68.65);
   CutBox(32.05, 66.15, 33.85, 68.65);
-  CutBox(10.26, 66.60, 13.19, 68.20);
+  CutBox(33.68, 63.30, 36.61, 64.90);
   CutBox(30.15, 62.85, 31.95, 65.35);
   CutBox(32.05, 62.85, 33.85, 65.35);
   CutBox(26.68, 63.30, 29.61, 64.90);
@@ -2777,4 +2777,15 @@ Begin
   CutRound(53.80, 87.50, 5.40);
   PCBServer.PostProcess; Board.ViewManager_FullUpdate;
   ShowMessage('Artwork cut: ' + IntToStr(CutDone) + ' large pieces clipped into ' + IntToStr(CutNew) + ' pieces');
+End;
+
+Procedure DesFix;   { move only the designators that differ from tools/des_pins.json (compared with the last DumpV1) }
+Begin
+  Board := PCBServer.GetPCBBoardByPath('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\DebugBoard.PcbDoc');
+  If Board = Nil Then Board := PCBServer.GetCurrentPCBBoard;
+  If Board = Nil Then Begin ShowMessage('Open DebugBoard.PcbDoc first'); Exit; End;
+  X0 := 11558.4886; Y0 := 3895.504;
+  PCBServer.PreProcess;
+  PCBServer.PostProcess; Board.ViewManager_FullUpdate;
+  ShowMessage('DesFix: moved 0 designators ()');
 End;

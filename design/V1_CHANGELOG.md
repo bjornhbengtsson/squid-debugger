@@ -518,7 +518,9 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
   moving designators off the picture (breaks the hand-set symmetry); re-making the artwork with dots that never merge,
   so every window can be cut by deleting dots (not needed once clipping worked).
 - **Script change:** `PlaceV1` no longer touches the title text (it is hand-set now) and uses the same careful removal.
-- **Open:** R40's designator sits 17 mm from its part, on a pad of P2: probably dragged by accident.
+- **R40's designator** had ended up 17 mm from its part, on a pad of P2 (an accidental drag). Moved back beside R40 at the
+  same offset its neighbours R41 / R43 / R44 use, with the new `DesFix` script, which moves only designators that differ
+  from `tools/des_pins.json`. Board check: errors = 0.
 
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
