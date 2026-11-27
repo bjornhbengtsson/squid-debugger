@@ -121,7 +121,8 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
   -> python tools/drc_summary.py. State Nov 27: board is 61 x 107 mm (UP = 7 in pcb_place.py; StretchV1 moved the outline; holes 51 x 97), GND jack on the
   centre line, placement + 139 designators + stack-up done, TPS2121 vias enlarged to 0.25/0.52 by PlaceV1, Clarke quote
   removed, title = "By: Bjorn Bengtsson and Alex Jaber". DRC = 320 unrouted + 16 antennae + 8 SOIC mask slivers. J1 pin 1 is on the RIGHT. User said: do not route yet.
-  View scripts: ViewFront / ViewBack / ViewBoth hide the other side's layers (user wants one side at a time).
+  After StretchV1 always run RegionV1 (Board.RebuildSplitBoardRegions) or the solid board keeps the old shape. PlaceV1
+  attaches local STEP models (STEP dict in pcb_place.py); TurnSW1 rotates the DIP switch model. View scripts: ViewFront / ViewBack / ViewBoth hide the other side's layers (user wants one side at a time).
   Script gotchas: BoundingRectangleNoNameComment includes silk; artwork texts on Bottom Overlay are text frames
   (MultilineTextWidth/Height); RemovePCBObject silently failed on V0's free "TX RX" frame tracks; File > Save Project
   only shows when a non-PCB document (e.g. the DRC report) is active. To see the PCB: File > Smart PDF (current document) then render the PDF with PyMuPDF,

@@ -13,6 +13,10 @@ Status (Nov 27 2026): **components placed, silkscreen done, DRC run. Not routed.
 |---|---|
 | ![top](../screenshots/V1_pcb_top.jpg) | ![bottom](../screenshots/V1_pcb_bottom.jpg) |
 
+**3D models:** every part except the mounting holes has a 3D body. 17 parts whose footprints had none (SW1, the six
+22 µF caps, the nine SOT-23 diodes, U10) get their STEP file from `hardware/Libraries/SquidDebugger_V1/3D` when
+`PlaceV1` runs.
+
 **One side at a time:** run `ViewFront` (File » Run Script) to hide everything on the bottom side, `ViewBack` to hide
 everything on the top side (then View » Flip Board), `ViewBoth` to show both again. They switch the copper, silk, paste,
 mask and "Top …" / "Bottom …" mechanical layers. Through-hole pads stay visible on both sides.

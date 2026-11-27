@@ -369,6 +369,19 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
 - **Watch:** the hole pattern differs from V0 (97 mm instead of 90 mm). Confirm it against the flight stack mounts.
 - **Alternatives:** keep 100 mm with the jack beside U6 (entry 24); move U6 to the bottom side; a smaller DIP switch.
 
+## 26. Board shape fixed to the 107 mm outline; 3D models attached (DONE Nov 27, not routed)
+- **What:**
+  - Entry 25 moved the outline but not the board region, so the solid board still ended at 100 mm and the top holes
+    hung off it. `RegionV1` rebuilds the region from the outline. The saved file now has both at 107 mm.
+  - 17 parts had no 3D body: SW1, C31/C32/C34/C35/C37/C38, D8-D16, U10. Their STEP files were already in
+    `hardware/Libraries/SquidDebugger_V1/3D`; `PlaceV1` now attaches them. Only MH1-MH4 and the logo have no body.
+  - SW1's STEP file is modelled lying on its side. `TurnSW1` rotates it 90 degrees about X.
+  - `ViewFront` / `ViewBack` / `ViewBoth` show one side of the board at a time.
+- **Verified:** `pcb_check.py` errors = 0; DRC unchanged (320 un-routed, 16 antennae, 8 SOIC mask slivers).
+- **Not verified:** SW1's model height above the board (it looks right from the top and no longer pokes through the bottom).
+- **Note:** the models are attached to the parts on the board, not to the library footprints. *Update From PCB
+  Libraries* would drop them; re-run `PlaceV1` (and `TurnSW1`) afterwards.
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.
