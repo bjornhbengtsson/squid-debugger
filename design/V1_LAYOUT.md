@@ -15,7 +15,9 @@ Status (Nov 27 2026): **components placed, silkscreen done, DRC run. Not routed.
 
 **3D models:** every part except the mounting holes has a 3D body. 17 parts whose footprints had none (SW1, the six
 22 µF caps, the nine SOT-23 diodes, U10) get their STEP file from `hardware/Libraries/SquidDebugger_V1/3D` when
-`PlaceV1` runs.
+`PlaceV1` runs. Each model's rotation and lift is in the `STEP` table in `tools/pcb_place.py`: the DIP switch and the
+Nexperia SOT-23 files are drawn with Y as the height axis, so they are turned about X; the script then centres the
+turned model on the part's pads.
 
 **One side at a time:** run `ViewFront` (File » Run Script) to hide everything on the bottom side, `ViewBack` to hide
 everything on the top side (then View » Flip Board), `ViewBoth` to show both again. They switch the copper, silk, paste,
@@ -27,8 +29,8 @@ Planning view with pads and designators, both sides: [`V1_placement.png`](V1_pla
 
 | # | Constraint | Source |
 |---|---|---|
-| C1 | Outline **61 × 107 mm**, 5 mm corner radius (V0 was 61 × 100) | lengthened 7 mm on Nov 27 so the GND jack stays on the centre line |
-| C2 | 4 × M3 holes (`CCNT-1U-MH1`), 5 mm in from each edge: **51 × 97 mm** pattern (V0: 51 × 90), pads on GND | same holes as V0; the top pair moved up with the edge |
+| C1 | Outline **61 × 110 mm**, 5 mm corner radius (V0 was 61 × 100) | lengthened 10 mm on Nov 27 so the GND jack stays on the centre line |
+| C2 | 4 × M3 holes (`CCNT-1U-MH1`), 5 mm in from each edge: **51 × 100 mm** pattern (V0: 51 × 90), pads on GND | same holes as V0; the top pair moved up with the edge |
 | C3 | J1 (JST-GH 12) at the bottom edge centre, cable leaves the board | V0 |
 | C4 | Pico USB connector at the top edge centre | V0 |
 | C5 | Pico soldered flat: nothing on the top side under it; its pin rows are through-pads, so only the strip between them is free on the bottom | Pico footprint |
@@ -39,14 +41,14 @@ Planning view with pads and designators, both sides: [`V1_placement.png`](V1_pla
 | C10 | Every rail path sized for the TPS2121 limit, 1.65 A worst case | `design/V1_PLAN.md` |
 
 Not confirmed: the SquidSat stack's card envelope. The paper only gives the payload bay (98.4 × 98.4 mm) and
-M3 standoffs. **The board is now 7 mm longer than V0 and the hole pattern is 51 × 97 mm, so it no longer drops onto
+M3 standoffs. **The board is now 10 mm longer than V0 and the hole pattern is 51 × 100 mm, so it no longer drops onto
 V0's standoff positions. Check with Alex** whether the stack needs the 90 mm pattern.
 
 ## 2. Three options
 
 ![three layout sketches](V1_layout_options.png)
 
-(The sketches show the original 100 mm length. Option A was later lengthened to 107 mm, see section 5.)
+(The sketches show the original 100 mm length. Option A was later lengthened to 110 mm, see section 5.)
 
 - **A. V0 classic, two-sided.** Same arrangement as V0: Pico top centre, a jack in each quadrant, J1 at the bottom.
   Each rail's switch sits beside its jack. The small divider and enable parts go on the bottom.
@@ -133,9 +135,10 @@ Positions come from Altium's real footprint geometry, not estimates. Every part 
 Each TPS2121 sits at 0° with its parts arranged around its pinout: input bypass caps at the IN pins (lower
 corners), output caps at the OUT pins (upper corners), soft-start cap and limit resistor at the top row.
 
-**Why the board is 7 mm longer than V0:** the real SW1 (12.7 × 12.1 mm), GND jack (10.5 mm pad) and U6 (12.9 mm
-square) need 37 mm in one column, and V0's 100 mm board leaves 35 mm under the Pico. To keep the GND jack on the
-centre line as in V0, everything from the Pico upward moved up 7 mm (Pico, the two upper jacks, buck, VBUS limit, top
+**Why the board is 10 mm longer than V0:** the real SW1 (12.7 × 12.1 mm), GND jack (10.5 mm pad) and U6 (12.9 mm
+square) need 37 mm in one column, and V0's 100 mm board leaves 35 mm under the Pico. 7 mm makes them fit; 3 mm more
+puts the "GND" label directly under its jack. To keep the GND jack on the
+centre line as in V0, everything from the Pico upward moved up 10 mm (Pico, the two upper jacks, buck, VBUS limit, top
 holes). The UART group stayed inside its V0 silk frame.
 
 ### Silkscreen
@@ -144,8 +147,9 @@ holes). The UART group stayed inside its V0 silk frame.
 - None is on a pad, hole or via, under the Pico, outside the board, or on another designator. `pcb_check.py` verifies this
   from Altium's own text boxes.
 - Jack labels (+3.3V, +5V, +12V, +5V RF, GND) are 1.5 mm and sit below or beside their jack. "TX RX" is 1.3 mm inside its frame.
-- V0 artwork on the bottom side is kept. Its halftone dots are removed only where a bottom-side pad or designator
-  sits. The title now reads "Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber" and sits above the SWD
+- V0's praying-mantis artwork on the bottom side is the original, copied back from the V0 board file (`ArtV1`).
+  Its halftone dots are removed only directly under bottom-side pads, round through-hole pads, designators and the
+  title text. The title now reads "Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber" and sits above the SWD
   resistors, because bottom-side parts occupy its V0 position. The Clarke quote is removed.
 
 ## 6. DRC (Altium, Nov 27, unrouted board)
@@ -207,4 +211,4 @@ Found and fixed during this pass:
    it by its outline. Fix the origin in the workspace library; it is not a local file.
 4. **Q1–Q4 footprint** `SOT103P240X110-3N`: its PcbLib is now part of the project, so imports find it. The compiled
    `SquidDebugger_V1.IntLib` still lacks it; recompile the LibPkg when convenient.
-5. Card envelope and hole pattern of the flight stack (now 61 × 107, holes 51 × 97): confirm with Alex.
+5. Card envelope and hole pattern of the flight stack (now 61 × 110, holes 51 × 100): confirm with Alex.

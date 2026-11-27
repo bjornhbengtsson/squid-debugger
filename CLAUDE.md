@@ -118,11 +118,13 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
   Placement table = tools/pcb_place.py -> tools/altium/place_v1.pas (File > Run Script > SquidPcbTools.PrjScr > PlaceV1,
   StackV1, DumpV1). Loop: DumpV1 (writes real pad/text geometry to tools/altium/pcb_dump.txt) -> python tools/pcb_place.py
   -> PlaceV1 -> DumpV1 -> save -> python tools/pcb_check.py (expect errors = 0) -> Tools > Design Rule Check (Alt+R)
-  -> python tools/drc_summary.py. State Nov 27: board is 61 x 107 mm (UP = 7 in pcb_place.py; StretchV1 moved the outline; holes 51 x 97), GND jack on the
+  -> python tools/drc_summary.py. State Nov 27: board is 61 x 110 mm (UP = 10 in pcb_place.py; StretchV1 moves outline + region; holes 51 x 100), GND jack on the
   centre line, placement + 139 designators + stack-up done, TPS2121 vias enlarged to 0.25/0.52 by PlaceV1, Clarke quote
   removed, title = "By: Bjorn Bengtsson and Alex Jaber". DRC = 320 unrouted + 16 antennae + 8 SOIC mask slivers. J1 pin 1 is on the RIGHT. User said: do not route yet.
   After StretchV1 always run RegionV1 (Board.RebuildSplitBoardRegions) or the solid board keeps the old shape. PlaceV1
-  attaches local STEP models (STEP dict in pcb_place.py); TurnSW1 rotates the DIP switch model. View scripts: ViewFront / ViewBack / ViewBoth hide the other side's layers (user wants one side at a time).
+  attaches local STEP models (STEP dict in pcb_place.py); Model rotations/lifts are in the STEP table (probe with ProbeV1: a new body lands with model origin at absolute 0,0;
+  set rotation BEFORE adding, then centre its box on the pads). ArtV1 restores V0 mantis artwork from _backup/DebugBoard_V0.PcbDoc
+  (git show 009cc9b:hardware/DebugBoard.PcbDoc). User likes the mantis: never cut big holes in it. View scripts: ViewFront / ViewBack / ViewBoth hide the other side's layers (user wants one side at a time).
   Script gotchas: BoundingRectangleNoNameComment includes silk; artwork texts on Bottom Overlay are text frames
   (MultilineTextWidth/Height); RemovePCBObject silently failed on V0's free "TX RX" frame tracks; File > Save Project
   only shows when a non-PCB document (e.g. the DRC report) is active. To see the PCB: File > Smart PDF (current document) then render the PDF with PyMuPDF,

@@ -11,11 +11,12 @@ It does not route anything.
 """
 import os, math, itertools
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
-UP = 7.0                                     # the board is 7 mm longer than V0: everything from the Pico up moved by this
+UP = 10.0                                    # the board is 10 mm longer than V0: everything from the Pico up moved by this
 W, H, CORNER = 61.0, 100.0 + UP, 5.0
 ORIGIN_MIL = (11558.4886, 3895.504)          # board lower-left corner in the PcbDoc (absolute mils)
 PCB_PATH = r'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\DebugBoard.PcbDoc'
 DUMP_PATH = os.path.join(HERE, 'altium', 'pcb_dump.txt')
+V0_PATH = os.path.abspath(os.path.join(ROOT, '_backup', 'DebugBoard_V0.PcbDoc'))   # git show 009cc9b:hardware/DebugBoard.PcbDoc
 GAP = 0.25                                   # minimum space between two parts' outline boxes
 TXT_H, TXT_W = 0.8, 0.15                     # designator height and stroke width (fab minimum for legible silk)
 LBL_H = 1.5                                  # jack label height
@@ -79,7 +80,7 @@ put('TP3', 7.2, 77.5 + UP); put('D4', 15.4, 77.5 + UP, 90)                      
 put('TP1', 53.8, 77.5 + UP); put('D5', 45.6, 77.5 + UP, 90)                         # +5V_PSU
 put('TP2', 7.2, 34.2); put('D7', 15.4, 34.2, 90)                          # +12V_PSU
 put('TP4', 53.8, 34.2); put('D6', 45.6, 34.2, 90)                         # +5V_RF_PSU
-put('TP5', 30.5, 35.3)                                                    # GND, on the centre line as in V0
+put('TP5', 30.5, 38.3)                                                    # GND, on the centre line as in V0
 # VBUS current limit (top right, at Pico pin 40)
 put('U4', 49.7, 93.3 + UP, 270); put('C4', 45.0, 95.6 + UP, 90); put('R5', 45.0, 90.6 + UP, 270); put('C23', 49.7, 87.6 + UP)
 put('R3', 57.8, 89.9 + UP, 90); put('D1', 54.6, 87.0 + UP, 90)
@@ -118,8 +119,8 @@ put('D8', 45.25, 42.5); put('D9', 50.55, 42.5); put('D10', 55.85, 42.5)
 put('C27', 44.0, 48.4, 90); put('U9', 48.4, 48.4); put('C28', 52.4, 48.4, 90); put('R13', 55.4, 48.4, 90)
 put('C29', 50.2, 53.0); put('U10', 55.8, 53.1)
 # CAN: controller on the centre line under the Pico's SPI1 pins, crystal to its lower right, transceiver by SW1
-put('U6', 30.5, 47.6, 90); put('Y1', 39.85, 39.0, 180); put('C7', 39.85, 35.3); put('C8', 39.85, 42.7)
-put('C9', 22.3, 51.4, 90); put('R10', 22.3, 46.9, 90)
+put('U6', 30.5, 50.6, 90); put('Y1', 39.85, 42.0, 180); put('C7', 39.85, 38.3); put('C8', 39.85, 45.7)
+put('C9', 22.3, 54.4, 90); put('R10', 22.3, 49.9, 90)
 put('U2', 20.8, 20.3, 90); put('R1', 19.2, 26.1, 90); put('C1', 22.25, 26.1, 90)
 # force-on DIP switch and SWD series resistors (bottom side, on the way to J1 pins 9-12)
 put('SW1', 30.5, 23.4)
@@ -133,8 +134,8 @@ for i, d in enumerate(('C42', 'C43', 'C44')): put(d, 25.0 if i != 1 else 32.0, 7
 for i in range(8): put(f'R{50+i}', 25.0 if i < 4 else 32.0, 83.2 + UP + 2.9 * (i % 4), 0, 'B')
 put('R57', 32.0, 79.9 + UP, 0, 'B')
 
-LOGO = (30.5, 46.3, 0); LOGO_BOX = (23.7, 41.0, 37.3, 51.6)                       # SDSL logo: bottom side, centre
-LABELS = {'+3.3V': (1.5, 76.6), '+5V': (49.6, 76.6), '+12V': (2.0, 26.3), '+5V RF': (47.6, 26.3), 'GND': (36.7, 31.6)}
+LOGO = (30.5, 49.3, 0); LOGO_BOX = (23.7, 44.0, 37.3, 54.6)                       # SDSL logo: bottom side, centre
+LABELS = {'+3.3V': (1.5, 76.6), '+5V': (49.6, 76.6), '+12V': (2.0, 26.3), '+5V RF': (47.6, 26.3), 'GND': (28.2, 30.25)}       # GND sits directly under its jack
 TITLE = (30.5, 22.6, 1.0)                   # "Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber", bottom side
 TITLE_BOX = (TITLE[0] - 20.0, TITLE[1] - 2.2, TITLE[0] + 20.0, TITLE[1] + 2.2)
 FRAME = (11.2, 51.4, 19.0, 72.15)            # V0 silk frame around the UART parts (free tracks on the top overlay)
@@ -143,11 +144,12 @@ FRAME_LINES = [(FRAME[0] - 0.1, FRAME[1] - 0.1, FRAME[2] + 0.1, FRAME[1] + 0.1),
 TXRX = (15.1, 70.75, 1.3)                    # "TX RX" label: centred in the frame above P2, 1.3 mm so it clears the frame lines
 # parts whose footprint has no 3D body: STEP file (in hardware/Libraries/SquidDebugger_V1/3D) per designator
 STEP_DIR = os.path.join(os.path.dirname(PCB_PATH), 'Libraries', 'SquidDebugger_V1', '3D')
-STEP = {'SW1': '219-4MST.stp', 'U10': 'LM4040BIM3-2.5_NOPB.stp'}
-STEP.update({d: 'GCM31CR71A226KE02K.stp' for d in ('C31', 'C32', 'C34', 'C35', 'C37', 'C38')})
-STEP.update({d: 'BAT54C,215.stp' for d in ('D8', 'D9', 'D10')})
-STEP.update({d: 'BAT54A,215.stp' for d in ('D12', 'D14', 'D15', 'D16')})
-STEP.update({d: 'BZX84-C4V7,215.stp' for d in ('D11', 'D13')})
+STEP = {'SW1': ('219-4MST.stp', 90, 0, 0.25),                       # height is the model's Y axis; feet at y = -0.25
+        'U10': ('LM4040BIM3-2.5_NOPB.stp', 0, 0, 0.0)}              # TI SOT-23: already flat, leads along X
+STEP.update({d: ('GCM31CR71A226KE02K.stp', 0, 0, 0.0) for d in ('C31', 'C32', 'C34', 'C35', 'C37', 'C38')})
+STEP.update({d: ('BAT54C,215.stp', 270, 0, 2.11) for d in ('D8', 'D9', 'D10')})           # Nexperia SOT-23: height along Y
+STEP.update({d: ('BAT54A,215.stp', 270, 270, 2.11) for d in ('D12', 'D14', 'D15', 'D16')})  # footprint has pads 1, 2 on +X
+STEP.update({d: ('BZX84-C4V7,215.stp', 270, 270, 2.11) for d in ('D11', 'D13')})
 THT = {d for d in GEO if any(p[1] == 'M' for p in GEO[d]['pads'])}
 ROUND = lambda d: d.startswith(('TP', 'MH'))
 
@@ -292,7 +294,7 @@ def pas(path):
                  "  If Board = Nil Then Begin ShowMessage('Open DebugBoard.PcbDoc first'); Exit; End;",
                  f'  X0 := {ORIGIN_MIL[0]}; Y0 := {ORIGIN_MIL[1]};']
     L = ['{ Generated by tools/pcb_place.py - do not edit. PlaceV1 places parts and silkscreen; it routes nothing. }',
-         'Var Board : IPCB_Board; Missing : String; X0, Y0 : Double; Wiped, Added : Integer;', '',
+         'Var Board : IPCB_Board; Missing : String; X0, Y0 : Double; Wiped, Added : Integer; Sizes : String;', '',
          'Procedure Put(Des : String; X, Y, Rot : Double; Bottom : Boolean);', 'Var C : IPCB_Component;', 'Begin',
          '  C := Board.GetPcbComponentByRefDes(Des);',
          "  If C = Nil Then Begin Missing := Missing + Des + ' '; Exit; End;",
@@ -367,9 +369,10 @@ def pas(path):
          '  C.GroupIterator_Destroy(G);', 'End;', '',
          'Procedure StretchV1;   { make the board UP mm longer: move the top edge, and any free mechanical drawing above mid-board }',
          'Var BO : IPCB_BoardOutline; I : Integer; S : TPolySegment; Lim, D : Integer; It : IPCB_BoardIterator; T : IPCB_Track; A : IPCB_Arc; N : Integer;', 'Begin'] + get_board + [
-         f'  D := MilsToCoord({UP} / 0.0254); Lim := MilsToCoord(Y0 + 50 / 0.0254); N := 0;',
+         '  Lim := MilsToCoord(Y0 + 50 / 0.0254); N := 0;',
          '  BO := Board.BoardOutline;',
-         f"  If BO.BoundingRectangle.Top > MilsToCoord(Y0 + {H - 2} / 0.0254) Then Begin ShowMessage('Board is already stretched'); Exit; End;",
+         f'  D := MilsToCoord(Y0 + {H} / 0.0254) - BO.BoundingRectangle.Top;',
+         "  If Abs(D) < MilsToCoord(1) Then Begin ShowMessage('Board already has this length'); Exit; End;",
          '  PCBServer.PreProcess;',
          '  BO.BeginModify;',
          '  For I := 0 To BO.PointCount Do Begin',
@@ -399,7 +402,63 @@ def pas(path):
          '    A := It.NextPCBObject;', '  End;',
          '  Board.BoardIterator_Destroy(It);',
          '  PCBServer.PostProcess; Board.ViewManager_FullUpdate;',
-         "  ShowMessage('Outline stretched; free mechanical tracks/arcs moved: ' + IntToStr(N));", 'End;', '',
+         '  Board.RebuildSplitBoardRegions(True); Board.ViewManager_FullUpdate;',
+         "  ShowMessage('Outline and board region stretched; free mechanical tracks/arcs moved: ' + IntToStr(N));", 'End;', '',
+         'Procedure ArtV1;   { put V0''s full bottom-side artwork back: copy its silk regions from the V0 board file }',
+         'Var Old : IPCB_Board; It : IPCB_BoardIterator; O : IPCB_Primitive; Lst : TInterfaceList; I, N : Integer;', 'Begin'] + get_board + [
+         f"  Client.OpenDocument('PCB', '{V0_PATH}');",
+         f"  Old := PCBServer.GetPCBBoardByPath('{V0_PATH}');",
+         "  If Old = Nil Then Begin ShowMessage('Could not load the V0 board'); Exit; End;",
+         '  PCBServer.PreProcess;',
+         '  Lst := TInterfaceList.Create; It := Board.BoardIterator_Create;',
+         '  It.AddFilter_ObjectSet(MkSet(eRegionObject)); It.AddFilter_LayerSet(MkSet(eBottomOverlay)); It.AddFilter_Method(eProcessAll);',
+         '  O := It.FirstPCBObject;',
+         '  While O <> Nil Do Begin If Not O.InComponent Then Lst.Add(O); O := It.NextPCBObject; End;',
+         '  Board.BoardIterator_Destroy(It);',
+         '  For I := 0 To Lst.Count - 1 Do Board.RemovePCBObject(Lst.Items[I]);',
+         '  Lst.Free; N := 0;',
+         '  It := Old.BoardIterator_Create;',
+         '  It.AddFilter_ObjectSet(MkSet(eRegionObject)); It.AddFilter_LayerSet(MkSet(eBottomOverlay)); It.AddFilter_Method(eProcessAll);',
+         '  O := It.FirstPCBObject;',
+         '  While O <> Nil Do Begin',
+         '    If Not O.InComponent Then Begin Board.AddPCBObject(O.Replicate); N := N + 1; End;',
+         '    O := It.NextPCBObject;', '  End;',
+         '  Old.BoardIterator_Destroy(It);',
+         '  PCBServer.PostProcess; Board.ViewManager_FullUpdate;',
+         "  ShowMessage('V0 artwork restored: ' + IntToStr(N) + ' silk regions');", 'End;', '',
+         'Procedure WipeRound(X, Y, R : Double);   { remove bottom-silk artwork dots whose centre is inside a circle (round pads) }',
+         'Var SI : IPCB_SpatialIterator; O : IPCB_Primitive; Lst : TInterfaceList; I : Integer; Rc : TCoordRect; Cx, Cy, Dx, Dy, Rr : Double;', 'Begin',
+         '  Cx := X0 + X / 0.0254; Cy := Y0 + Y / 0.0254; Rr := R / 0.0254;',
+         '  Lst := TInterfaceList.Create; SI := Board.SpatialIterator_Create;',
+         '  SI.AddFilter_ObjectSet(MkSet(eRegionObject)); SI.AddFilter_LayerSet(MkSet(eBottomOverlay));',
+         '  SI.AddFilter_Area(MilsToCoord(Cx - Rr), MilsToCoord(Cy - Rr), MilsToCoord(Cx + Rr), MilsToCoord(Cy + Rr));',
+         '  O := SI.FirstPCBObject;',
+         '  While O <> Nil Do Begin',
+         '    If Not O.InComponent Then Begin',
+         '      Rc := O.BoundingRectangle;',
+         '      Dx := CoordToMils((Rc.Left + Rc.Right) Div 2) - Cx; Dy := CoordToMils((Rc.Bottom + Rc.Top) Div 2) - Cy;',
+         '      If Dx * Dx + Dy * Dy < Rr * Rr Then Lst.Add(O);',
+         '    End;',
+         '    O := SI.NextPCBObject;', '  End;',
+         '  Board.SpatialIterator_Destroy(SI);',
+         '  For I := 0 To Lst.Count - 1 Do Board.RemovePCBObject(Lst.Items[I]);',
+         '  Lst.Free;', 'End;', '',
+         'Function ProbeOne(F : String; Rx, Ry, Rz : Double) : String;   { projected size of a STEP model for one rotation }',
+         'Var B : IPCB_ComponentBody; Mdl : IPCB_Model; Rb : TCoordRect;', 'Begin',
+         '  B := PCBServer.PCBObjectFactory(eComponentBodyObject, eNoDimension, eCreate_Default);',
+         '  Mdl := B.ModelFactory_FromFilename(F, False);',
+         '  Mdl.SetState(Rx, Ry, Rz, 0); B.Model := Mdl; B.SetState_FromModel;',
+         '  Board.AddPCBObject(B);',
+         '  Rb := B.BoundingRectangle;',
+         "  Result := FloatToStr(Rx) + ',' + FloatToStr(Ry) + ',' + FloatToStr(Rz) + ': x ' + FloatToStr(Round(CoordToMils(Rb.Left) * 2.54) / 100) + '..' + FloatToStr(Round(CoordToMils(Rb.Right) * 2.54) / 100) + ' y ' + FloatToStr(Round(CoordToMils(Rb.Bottom) * 2.54) / 100) + '..' + FloatToStr(Round(CoordToMils(Rb.Top) * 2.54) / 100) + ' | ';",
+         '  Board.RemovePCBObject(B);', 'End;', '',
+         'Procedure ProbeV1;   { how do the TI and Nexperia SOT-23 STEP models project for each rotation? (model origin lands at absolute 0,0) }',
+         'Var S, F : String;', 'Begin'] + get_board + [
+         f"  F := '{os.path.join(STEP_DIR, 'LM4040BIM3-2.5_NOPB.stp')}';",
+         "  S := 'TI: ' + ProbeOne(F, 0, 0, 0) + ProbeOne(F, 90, 0, 0) + ProbeOne(F, 0, 90, 0) + ProbeOne(F, 0, 0, 90) + ProbeOne(F, 90, 0, 90) + ProbeOne(F, 90, 90, 0);",
+         f"  F := '{os.path.join(STEP_DIR, 'BAT54C,215.stp')}';",
+         "  S := S + '   NXP: ' + ProbeOne(F, 0, 0, 0) + ProbeOne(F, 90, 0, 0) + ProbeOne(F, 90, 0, 90) + ProbeOne(F, 90, 0, 180) + ProbeOne(F, 90, 0, 270);",
+         '  ShowMessage(S);', 'End;', '',
          'Procedure SideView(ShowTop, ShowBottom : Boolean);   { show or hide everything that belongs to one side of the board }',
          'Var I : Integer; L : TLayer; MO : IPCB_MechanicalLayer; N : String;', 'Begin'] + get_board + [
          '  Board.LayerIsDisplayed[eTopLayer] := ShowTop; Board.LayerIsDisplayed[eTopOverlay] := ShowTop;',
@@ -424,39 +483,45 @@ def pas(path):
          '  Board.RebuildSplitBoardRegions(True);',
          '  Board.ViewManager_FullUpdate;',
          "  ShowMessage('Board region rebuilt');", 'End;', '',
-         'Procedure Body3D(Des, FileName : String);   { give a part its STEP model; the part is laid flat on top first, PlaceV1 puts it back }',
-         'Var C : IPCB_Component; G : IPCB_GroupIterator; B : IPCB_ComponentBody; Mdl : IPCB_Model; Rc, Rb : TCoordRect; N : Integer;', 'Begin',
+         'Procedure Body3D(Des, FileName : String; RotX, RotZ, Dz : Double);',
+         '{ Seat a STEP model on a part. The part is laid flat on top first (PlaceV1 puts it back afterwards). A new body',
+         '  lands with the model origin at absolute 0,0; with the rotation set before it is added, its box is the turned',
+         '  model, so centring that box on the pads seats it. Any body the part already has is replaced. }',
+         'Var C : IPCB_Component; G : IPCB_GroupIterator; B, Old : IPCB_ComponentBody; Pd : IPCB_Pad; Mdl : IPCB_Model; Rb, Rp : TCoordRect;',
+         '    L, Bt, R, Tp : Integer; First : Boolean; Lst : TInterfaceList; I : Integer;', 'Begin',
          '  C := Board.GetPcbComponentByRefDes(Des);', '  If C = Nil Then Exit;',
+         '  Lst := TInterfaceList.Create;',
          '  G := C.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(eComponentBodyObject));',
-         '  N := 0; If G.FirstPCBObject <> Nil Then N := 1;',
+         '  Old := G.FirstPCBObject;',
+         '  While Old <> Nil Do Begin Lst.Add(Old); Old := G.NextPCBObject; End;',
          '  C.GroupIterator_Destroy(G);',
-         '  If N > 0 Then Exit;',
+         '  For I := 0 To Lst.Count - 1 Do Begin C.RemovePCBObject(Lst.Items[I]); Board.RemovePCBObject(Lst.Items[I]); End;',
+         '  Lst.Free;',
          '  C.BeginModify; C.Layer := eTopLayer; C.Rotation := 0; C.EndModify;',
+         '  First := True;',
+         '  G := C.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(ePadObject));',
+         '  Pd := G.FirstPCBObject;',
+         '  While Pd <> Nil Do Begin',
+         '    Rp := Pd.BoundingRectangle;',
+         '    If First Then Begin L := Rp.Left; Bt := Rp.Bottom; R := Rp.Right; Tp := Rp.Top; First := False; End',
+         '    Else Begin',
+         '      If Rp.Left < L Then L := Rp.Left; If Rp.Bottom < Bt Then Bt := Rp.Bottom;',
+         '      If Rp.Right > R Then R := Rp.Right; If Rp.Top > Tp Then Tp := Rp.Top;',
+         '    End;',
+         '    Pd := G.NextPCBObject;', '  End;',
+         '  C.GroupIterator_Destroy(G);',
          '  B := PCBServer.PCBObjectFactory(eComponentBodyObject, eNoDimension, eCreate_Default);',
          '  Mdl := B.ModelFactory_FromFilename(FileName, False);',
-         '  If Mdl = Nil Then Begin Missing := Missing + Des + ' + "'(no model) '" + '; Exit; End;',
-         '  B.SetState_FromModel;',
-         '  Mdl.SetState(0, 0, 0, 0);',
+         "  If Mdl = Nil Then Begin Missing := Missing + Des + '(no model) '; Exit; End;",
+         '  Mdl.SetState(RotX, 0, RotZ, MilsToCoord(Dz / 0.0254));',
          '  B.Model := Mdl;',
+         '  B.SetState_FromModel;',
          '  Board.AddPCBObject(B);',
-         '  Rc := C.BoundingRectangleNoNameComment; Rb := B.BoundingRectangle;',
-         '  B.MoveByXY((Rc.Left + Rc.Right) Div 2 - (Rb.Left + Rb.Right) Div 2, (Rc.Bottom + Rc.Top) Div 2 - (Rb.Bottom + Rb.Top) Div 2);',
+         '  Rb := B.BoundingRectangle;',
+         '  B.MoveByXY((L + R) Div 2 - (Rb.Left + Rb.Right) Div 2, (Bt + Tp) Div 2 - (Rb.Bottom + Rb.Top) Div 2);',
          '  C.AddPCBObject(B);',
+         "  Sizes := Sizes + Des + ' ' + FloatToStr(Round(CoordToMils(Rb.Right - Rb.Left) * 2.54) / 100) + 'x' + FloatToStr(Round(CoordToMils(Rb.Top - Rb.Bottom) * 2.54) / 100) + '  ';",
          '  Added := Added + 1;', 'End;', '',
-         'Procedure TurnSW1;   { the 219-4MST STEP file is modelled lying on its side: turn it and sit it on the board }',
-         'Var C : IPCB_Component; G : IPCB_GroupIterator; B : IPCB_ComponentBody; Mdl : IPCB_Model; Rc, Rb : TCoordRect;', 'Begin'] + get_board + [
-         "  C := Board.GetPcbComponentByRefDes('SW1');", '  If C = Nil Then Exit;',
-         '  G := C.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(eComponentBodyObject));',
-         '  B := G.FirstPCBObject;',
-         '  C.GroupIterator_Destroy(G);',
-         '  If B = Nil Then Exit;',
-         '  B.BeginModify; Mdl := B.Model;',
-         f'  Mdl.SetState(90, 0, 0, MilsToCoord(4.955 / 0.0254));',
-         '  B.Model := Mdl; B.EndModify;',
-         '  Rc := C.BoundingRectangleNoNameComment; Rb := B.BoundingRectangle;',
-         '  B.MoveByXY((Rc.Left + Rc.Right) Div 2 - (Rb.Left + Rb.Right) Div 2, (Rc.Bottom + Rc.Top) Div 2 - (Rb.Bottom + Rb.Top) Div 2);',
-         '  B.GraphicallyInvalidate; Board.ViewManager_FullUpdate;',
-         "  ShowMessage('SW1 model turned. Height ' + FloatToStr(CoordToMils(B.OverallHeight) * 0.0254) + ' standoff ' + FloatToStr(CoordToMils(B.StandoffHeight) * 0.0254));", 'End;', '',
          'Procedure NoRooms;   { the ECO adds a placement room off the board; nothing is meant to be confined to it }',
          'Var It : IPCB_BoardIterator; O : IPCB_Rule; Lst : TInterfaceList; I : Integer;', 'Begin',
          '  Lst := TInterfaceList.Create; It := Board.BoardIterator_Create;',
@@ -572,9 +637,9 @@ def pas(path):
          '    L := Stack.NextLayer(L);', '  End;',
          "  ShowMessage('Layer stack set');", 'End;', '',
          'Procedure PlaceV1;', 'Begin'] + get_board + [
-         "  Missing := ''; Added := 0;",
+         "  Missing := ''; Added := 0; Sizes := '';",
          '  PCBServer.PreProcess;',
-     ] + [f"  Body3D('{d}', '{os.path.join(STEP_DIR, f)}');" for d, f in sorted(STEP.items())] + [
+     ] + [f"  Body3D('{d}', '{os.path.join(STEP_DIR, f)}', {rx}, {rz}, {dz});" for d, (f, rx, rz, dz) in sorted(STEP.items())] + [
          '  Clear(ePolyObject); Clear(eTrackObject); Clear(eArcObject); Clear(eViaObject); Clear(eFillObject); Clear(eRegionObject);']
     for d, (x, y, a, side) in sorted(P.items()):
         L.append(f"  Put('{d}', {x:.3f}, {y:.3f}, {a}, {'True' if side == 'B' else 'False'});")
@@ -583,15 +648,21 @@ def pas(path):
         for d, (x, y, a) in sorted(DES.items()): L.append(f"  Des('{d}', {x:.3f}, {y:.3f}, {a});")
     L.append('  NoRooms;')
     L.append("  Vias('U3'); Vias('U5'); Vias('U7'); Vias('U8');")
-    keep_clear = [(r, 0.2) for d in P for r in pads_of(d, 'B')]
+    keep_clear = []
+    for d in P:
+        for n, kind, r, hole in GEO[d]['pads']:
+            w = world(d, r)
+            if kind == 'M':
+                L.append(f'  WipeRound({(w[0]+w[2])/2:.2f}, {(w[1]+w[3])/2:.2f}, {(w[2]-w[0])/2 + 0.15:.2f});')
+            elif P[d][3] == 'B': keep_clear.append((w, 0.15))
     keep_clear += [((x - (text_size(d)[0] if not a else text_size(d)[1]) / 2, y - (text_size(d)[1] if not a else text_size(d)[0]) / 2,
                      x + (text_size(d)[0] if not a else text_size(d)[1]) / 2, y + (text_size(d)[1] if not a else text_size(d)[0]) / 2), 0.25)
                    for d, (x, y, a) in DES.items() if P[d][3] == 'B']
-    keep_clear += [(TITLE_BOX, 0.6)]
+    keep_clear += [((TITLE[0] - 18.5, TITLE[1] - 2.0, TITLE[0] + 18.5, TITLE[1] + 2.0), 0.0)]
     for r, m in keep_clear:                  # V0 halftone artwork on the bottom silk: open a window under pads and text
         L.append(f'  Wipe(eRegionObject, eBottomOverlay, {r[0]-m:.2f}, {r[1]-m:.2f}, {r[2]+m:.2f}, {r[3]+m:.2f});')
     L += ['  PCBServer.PostProcess;', '  Board.ViewManager_FullUpdate;',
-          "  If Missing <> '' Then ShowMessage('Not on board: ' + Missing) Else ShowMessage('V1 placement done: %d parts, %d designators. 3D models added: ' + IntToStr(Added));" % (len(P), len(DES)),
+          "  If Missing <> '' Then ShowMessage('Not on board: ' + Missing) Else ShowMessage('V1 placement done: %d parts, %d designators. 3D models seated: ' + IntToStr(Added) + ' (' + Sizes + ')');" % (len(P), len(DES)),
           'End;']
     os.makedirs(os.path.dirname(path), exist_ok=True); open(path, 'w').write('\r\n'.join(L) + '\r\n')
 

@@ -41,7 +41,7 @@ All five sheets as one PDF: [`screenshots/V1_schematic.pdf`](screenshots/V1_sche
 
 ## PCB (V1, placed, not routed)
 
-61 × 107 mm, 4 layers. Details in [`design/V1_LAYOUT.md`](design/V1_LAYOUT.md); plan view with pads and designators:
+61 × 110 mm, 4 layers. Details in [`design/V1_LAYOUT.md`](design/V1_LAYOUT.md); plan view with pads and designators:
 [`screenshots/V1_pcb_placement_plan.png`](screenshots/V1_pcb_placement_plan.png).
 
 | Top | Bottom (flipped view) |

@@ -382,6 +382,21 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
 - **Note:** the models are attached to the parts on the board, not to the library footprints. *Update From PCB
   Libraries* would drop them; re-run `PlaceV1` (and `TurnSW1`) afterwards.
 
+## 27. Board 61 x 110 mm; mantis artwork restored; 3D models seated properly (DONE Nov 27, not routed)
+- **What:**
+  - Board lengthened 3 mm more (61 x 110 mm, holes 51 x 100 mm) so the "GND" label sits directly under the GND jack.
+  - The praying-mantis artwork on the bottom silk is V0's original again (4018 silk regions copied from the V0 board
+    file, `ArtV1`). Earlier passes had cut large squares out of it. Now only small windows are opened: under
+    bottom-side pads, round through-hole pads, designators and the title text.
+  - 3D models corrected. SW1 and the Nexperia SOT-23 models (D8-D16) are drawn with Y as height, so they are turned
+    about X (SW1 +90, SOT-23 270) and lifted to sit on the board. U10's TI model was already flat. Each model is
+    centred on its part's pads with the rotation applied first.
+- **Why the first attempt was wrong:** the models were centred before being turned, and Altium does not update a
+  body's outline when the model is turned afterwards. The lead side of each SOT-23 was checked by eye in the 3D view.
+- **Verified:** `pcb_check.py` errors = 0; DRC = 320 un-routed nets + 16 net antennae + 8 SOIC mask slivers.
+- **Alternatives:** shrink the GND label instead of lengthening the board; regenerate the artwork from a picture
+  (the V0 regions are exact, so they were copied instead).
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.
