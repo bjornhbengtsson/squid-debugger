@@ -168,4 +168,5 @@ Altium project: C:\Users\Public\Documents\Altium\Debugging Board V1\ (DebugBoard
 - tools/   diagram.py (SVG generator), template.html (page, {{SVG}} placeholder), calc.py, shot.js,
   build.py (diagram + page + PNG). Needs Python 3 and Node + `npm i playwright` (+ `npx playwright install chromium`).
 - reference/ Notes.docx, BOM xlsx, SquidSat SSC26 paper, TI §10.4 excerpt.
-- screenshots/ V0 PCB/schematics, whiteboard, J1 close-ups, OBC Rev2 board and crops.
+- screenshots/ V1_sheet1..5 PNGs + V1_schematic.pdf (Altium Smart PDF -> PyMuPDF 250 dpi, cropped; redo after
+  schematic edits), V0 PCB/schematics, whiteboard, J1 close-ups, OBC Rev2 board and crops.

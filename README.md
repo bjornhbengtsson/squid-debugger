@@ -23,7 +23,21 @@ the PCB file is still the V0 layout.
 | [`design/`](design) | Design record: `V1_PLAN.md` (all math + datasheet review), `V1_CHANGELOG.md` (every change with reasons and alternatives), `V1_PARTS_LINKS.md`, block diagrams. |
 | [`tools/`](tools) | Python tools that read, check and generate the Altium files (no Altium needed to run them). |
 | [`reference/`](reference) | Team notes, the SquidSat SSC26 paper, the BOM spreadsheet, and links to all datasheets. |
-| [`screenshots/`](screenshots) | V0 board and schematic captures, OBC Rev2 references. |
+| [`screenshots/`](screenshots) | V1 schematic images and PDF, V0 board and schematic captures, OBC Rev2 references. |
+
+## Schematic (V1)
+
+All five sheets as one PDF: [`screenshots/V1_schematic.pdf`](screenshots/V1_schematic.pdf) (Altium Smart PDF, Nov 27 2026).
+
+| Sheet | Contents |
+|---|---|
+| [1 DebugBoard](screenshots/V1_sheet1_DebugBoard.png) | Pico, CAN controller + transceiver, debug port J1, banana jacks, VBUS limit, buck, UART, headers |
+| [2 DebugBoardMuxes](screenshots/V1_sheet2_DebugBoardMuxes.png) | Bench inputs (TVS), AUX supply + 2.5 V reference, 5V RF and 12V switches |
+| [3 DebugBoardPowerControl](screenshots/V1_sheet3_DebugBoardPowerControl.png) | Rail Enable (Pico GPIO + DIP force-on) and Rail Monitors (ADC dividers) |
+| [4 DebugBoard3V3Mux](screenshots/V1_sheet4_DebugBoard3V3Mux.png) | 3V3 Power Mux (PSU vs USB) |
+| [5 DebugBoard5VMux](screenshots/V1_sheet5_DebugBoard5VMux.png) | 5V Power Mux (PSU vs VBUS) |
+
+![Sheet 1](screenshots/V1_sheet1_DebugBoard.png)
 
 ## Documentation
 

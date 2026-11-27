@@ -4,7 +4,7 @@ Every part on the board and why it's there. Sections match the boxed headings on
 
 ## Sheet 1: `DebugBoard.SchDoc` (main board, 46 parts)
 
-Drawn in the same wired style as the power sheets (see [the screenshot](../screenshots/V1_sheet1_wired.jpg)).
+Drawn in the same wired style as the power sheets (image: [sheet 1](../screenshots/V1_sheet1_DebugBoard.png)).
 Inside a block, follow the wires. A signal that leaves its block ends in a port with the net name. Rails use power
 symbols. Unused pins carry a red No-ERC cross.
 
@@ -73,6 +73,8 @@ symbols. Unused pins carry a red No-ERC cross.
 ## Sheets 2, 4, 5: power path (65 parts)
 
 Sheet 2 `DebugBoardMuxes.SchDoc` (31 parts) holds Bench Inputs, AUX & 2.5V Reference, the 5V RF and 12V switches.
+Images: [sheet 2](../screenshots/V1_sheet2_DebugBoardMuxes.png), [sheet 4](../screenshots/V1_sheet4_DebugBoard3V3Mux.png),
+[sheet 5](../screenshots/V1_sheet5_DebugBoard5VMux.png).
 The two dual-input muxes each have their own sheet: 3V3 on sheet 4 `DebugBoard3V3Mux.SchDoc`, 5V on sheet 5
 `DebugBoard5VMux.SchDoc` (17 parts each). How to read a mux sheet, left to right: the two input rails enter at the top
 left with their input caps, the three divider stacks (OV1, OV2, PR1) hang below, the BAT54A disable diode joins both
@@ -119,6 +121,8 @@ Like U7:
   C39 soft start, C40/C41 **10 µF 35 V** output caps.
 
 ## Sheet 3: `DebugBoardPowerControl.SchDoc` (Power Control, 28 parts)
+
+Image: [sheet 3](../screenshots/V1_sheet3_DebugBoardPowerControl.png).
 
 ### Rail Enable (one set per rail: 3V3, 5V, 5VRF, 12V)
 | Part (3V3 / 5V / 5VRF / 12V) | Role |
