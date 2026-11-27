@@ -34,3 +34,4 @@ _backup/
 ### Script scratch output ###
 tools/altium/probe_n.txt
 tools/altium/make_dda8.log
+tools/altium/probe_art.txt
