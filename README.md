@@ -23,7 +23,7 @@ routing has not started.
 | [`design/`](design) | Design record: `V1_PLAN.md` (all math + datasheet review), `V1_CHANGELOG.md` (every change with reasons and alternatives), `V1_PARTS_LINKS.md`, `V1_LAYOUT.md` (PCB layout choice, stack-up, placement, DRC), block diagrams. |
 | [`tools/`](tools) | Python tools that read, check and generate the Altium files (no Altium needed to run them). |
 | [`reference/`](reference) | Team notes, the SquidSat SSC26 paper, the BOM spreadsheet, and links to all datasheets. |
-| [`screenshots/`](screenshots) | V1 schematic images and PDF, V0 board and schematic captures, OBC Rev2 references. |
+| [`screenshots/`](screenshots) | V1 PCB views (top, bottom, placement plan), V1 schematic images and PDF, V0 board and schematic captures, OBC Rev2 references. |
 
 ## Schematic (V1)
 
@@ -38,6 +38,15 @@ All five sheets as one PDF: [`screenshots/V1_schematic.pdf`](screenshots/V1_sche
 | [5 DebugBoard5VMux](screenshots/V1_sheet5_DebugBoard5VMux.png) | 5V Power Mux (PSU vs VBUS) |
 
 ![Sheet 1](screenshots/V1_sheet1_DebugBoard.png)
+
+## PCB (V1, placed, not routed)
+
+61 × 107 mm, 4 layers. Details in [`design/V1_LAYOUT.md`](design/V1_LAYOUT.md); plan view with pads and designators:
+[`screenshots/V1_pcb_placement_plan.png`](screenshots/V1_pcb_placement_plan.png).
+
+| Top | Bottom (flipped view) |
+|---|---|
+| ![PCB top](screenshots/V1_pcb_top.jpg) | ![PCB bottom](screenshots/V1_pcb_bottom.jpg) |
 
 ## Documentation
 

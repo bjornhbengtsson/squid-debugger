@@ -354,6 +354,21 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
   - 0.6 mm designators (fits tighter, but below the usual 0.8 mm legibility minimum);
   - delete the V0 bottom artwork entirely (cleaner silk, loses the V0 look).
 
+## 25. Board lengthened to 61 x 107 mm; GND jack back on the centre line (DONE Nov 27, not routed)
+- **What:**
+  - Board outline is 7 mm longer (61 x 107 mm). The top mounting holes moved with the edge: pattern 51 x 97 mm.
+  - GND jack TP5 is on the centre line again (SW1, jack, CAN controller in one column, as V0). The crystal sits at
+    U6's lower right; C9 and R10 at its left.
+  - Pico, +3V3 and +5V jacks, buck and VBUS limiter moved up 7 mm. UART stays in its V0 silk frame.
+  - TPS2121 footprint vias enlarged on the board from 0.2 / 0.4 mm to 0.25 / 0.52 mm. The hole-size and annular-ring
+    violations are gone.
+  - Clarke quote removed from the bottom silk. Title now reads "Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber".
+- **Why:** the user wanted the GND jack where V0 had it. The real parts need 37 mm in that column; V0 has 35 mm.
+- **DRC:** 344 = 320 un-routed nets + 16 net antennae (TPS2121 vias, clear when routed) + 8 SOIC mask slivers on U6.
+- **Verified:** `pcb_check.py` errors = 0. Images: `screenshots/V1_pcb_top.jpg`, `V1_pcb_bottom.jpg`, `V1_pcb_placement_plan.png`.
+- **Watch:** the hole pattern differs from V0 (97 mm instead of 90 mm). Confirm it against the flight stack mounts.
+- **Alternatives:** keep 100 mm with the jack beside U6 (entry 24); move U6 to the bottom side; a smaller DIP switch.
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.

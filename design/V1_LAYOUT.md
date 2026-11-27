@@ -9,7 +9,9 @@ Status (Nov 27 2026): **components placed, silkscreen done, DRC run. Not routed.
 - `DumpV1` writes the real pad and text geometry to `tools/altium/pcb_dump.txt`. `python tools/pcb_check.py`
   checks it: positions, spacing, designators, stack. `python tools/drc_summary.py` summarises Altium's DRC report.
 
-![board in Altium, 3D view](V1_pcb_3d.jpg)
+| Top | Bottom (flipped view) |
+|---|---|
+| ![top](../screenshots/V1_pcb_top.jpg) | ![bottom](../screenshots/V1_pcb_bottom.jpg) |
 
 Planning view with pads and designators, both sides: [`V1_placement.png`](V1_placement.png).
 
@@ -17,8 +19,8 @@ Planning view with pads and designators, both sides: [`V1_placement.png`](V1_pla
 
 | # | Constraint | Source |
 |---|---|---|
-| C1 | Outline 61 × 100 mm, 5 mm corner radius | V0 board, kept so the card fits the same mounts |
-| C2 | 4 × M3 holes (`CCNT-1U-MH1`), 5 mm in from each edge: 51 × 90 mm pattern, pads on GND | V0 board |
+| C1 | Outline **61 × 107 mm**, 5 mm corner radius (V0 was 61 × 100) | lengthened 7 mm on Nov 27 so the GND jack stays on the centre line |
+| C2 | 4 × M3 holes (`CCNT-1U-MH1`), 5 mm in from each edge: **51 × 97 mm** pattern (V0: 51 × 90), pads on GND | same holes as V0; the top pair moved up with the edge |
 | C3 | J1 (JST-GH 12) at the bottom edge centre, cable leaves the board | V0 |
 | C4 | Pico USB connector at the top edge centre | V0 |
 | C5 | Pico soldered flat: nothing on the top side under it; its pin rows are through-pads, so only the strip between them is free on the bottom | Pico footprint |
@@ -29,11 +31,14 @@ Planning view with pads and designators, both sides: [`V1_placement.png`](V1_pla
 | C10 | Every rail path sized for the TPS2121 limit, 1.65 A worst case | `design/V1_PLAN.md` |
 
 Not confirmed: the SquidSat stack's card envelope. The paper only gives the payload bay (98.4 × 98.4 mm) and
-M3 standoffs. The V0 outline and hole footprint are taken as the standard. **Check with Alex.**
+M3 standoffs. **The board is now 7 mm longer than V0 and the hole pattern is 51 × 97 mm, so it no longer drops onto
+V0's standoff positions. Check with Alex** whether the stack needs the 90 mm pattern.
 
 ## 2. Three options
 
 ![three layout sketches](V1_layout_options.png)
+
+(The sketches show the original 100 mm length. Option A was later lengthened to 107 mm, see section 5.)
 
 - **A. V0 classic, two-sided.** Same arrangement as V0: Pico top centre, a jack in each quadrant, J1 at the bottom.
   Each rail's switch sits beside its jack. The small divider and enable parts go on the bottom.
@@ -104,12 +109,12 @@ Positions come from Altium's real footprint geometry, not estimates. Every part 
 | USB buck 5 V → 3.3 V | top left | U13, L1, C18–C22 |
 | VBUS current limit | top right, at Pico pin 40 (VBUS) | U4, C4, C23, R3, R5, D1 |
 | Bench jacks + TVS | four quadrants; each jack moved 3 mm outward so its TVS fits beside it | TP1–TP4, D4–D7 |
-| GND jack | right of the CAN controller (was bottom centre in V0) | TP5 |
+| GND jack | on the centre line, between SW1 and the CAN controller (as V0) | TP5 |
 | UART | left of the Pico, inside V0's "TX RX" frame | P2, D2, D3, R6, R7; R11, R12 beside it |
 | 3V3 mux | left, below UART; dividers underneath | U3, C6, C26, C30–C32, R22 / bottom: R14–R21, D11, D12 |
 | 5V mux | right; dividers underneath | U5, C2, C3, C33–C35, R31 / bottom: R23–R30, D13, D14 |
 | AUX supply + 2.5 V reference | right, above the 5 V RF jack | D8–D10, U9, U10, C27–C29, R13 |
-| CAN controller + crystal | centre left, under the Pico's SPI1 pins | U6, Y1, C7, C8 / bottom: C9, R10 |
+| CAN controller + crystal | centre line under the Pico; crystal at its lower right; C9 / R10 at its left | U6, Y1, C7, C8, C9, R10 |
 | CAN transceiver | left of the DIP switch | U2, C1, R1 |
 | 12 V switch / 5 V RF switch | bottom left / bottom right | U8 …, U7 … (dividers and BAT54A underneath) |
 | Force-on DIP switch | centre, top side | SW1 |
@@ -120,9 +125,10 @@ Positions come from Altium's real footprint geometry, not estimates. Every part 
 Each TPS2121 sits at 0° with its parts arranged around its pinout: input bypass caps at the IN pins (lower
 corners), output caps at the OUT pins (upper corners), soft-start cap and limit resistor at the top row.
 
-**Why the centre changed from the first draft:** the real SW1 (12.7 × 12.1 mm), U6 (12.9 mm square) and GND jack
-(10.5 mm pad) do not fit in one column under the Pico. In the first draft the jack pad overlapped SW1's pads by
-0.5 mm. U6 and the jack now sit side by side, and SW1 is raised clear of the P3/P4 pin labels.
+**Why the board is 7 mm longer than V0:** the real SW1 (12.7 × 12.1 mm), GND jack (10.5 mm pad) and U6 (12.9 mm
+square) need 37 mm in one column, and V0's 100 mm board leaves 35 mm under the Pico. To keep the GND jack on the
+centre line as in V0, everything from the Pico upward moved up 7 mm (Pico, the two upper jacks, buck, VBUS limit, top
+holes). The UART group stayed inside its V0 silk frame.
 
 ### Silkscreen
 
@@ -131,8 +137,8 @@ corners), output caps at the OUT pins (upper corners), soft-start cap and limit 
   from Altium's own text boxes.
 - Jack labels (+3.3V, +5V, +12V, +5V RF, GND) are 1.5 mm and sit below or beside their jack. "TX RX" is 1.3 mm inside its frame.
 - V0 artwork on the bottom side is kept. Its halftone dots are removed only where a bottom-side pad or designator
-  sits. The title now reads "Squid Debugger V1 / By: Alex Jaber" and sits under the logo; the Clarke quote is one
-  line above J1. Both moved because bottom-side parts now occupy their V0 positions.
+  sits. The title now reads "Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber" and sits above the SWD
+  resistors, because bottom-side parts occupy its V0 position. The Clarke quote is removed.
 
 ## 6. DRC (Altium, Nov 27, unrouted board)
 
@@ -140,14 +146,14 @@ corners), output caps at the OUT pins (upper corners), soft-start cap and limit 
 |---|---:|---|
 | Un-routed net | 320 | expected: nothing is routed |
 | Clearance, short circuit, component clearance, hole-to-hole, silk-to-mask, silk-to-silk, room | 0 | clean |
+| Hole size, minimum annular ring | 0 | clean after enlarging the TPS2121 vias (below) |
 | Net antennae | 16 | the TPS2121 footprint's own 16 vias; clears when they are connected |
-| Hole size (0.200 mm < 8 mil rule) | 16 | same 16 vias: the vendor footprint uses 0.2 mm holes |
-| Minimum annular ring (0.1 mm < 5 mil rule) | 16 | same 16 vias: 0.4 mm pad on a 0.2 mm hole |
 | Minimum solder-mask sliver | 8 | between adjacent pins of U6 (SOIC-18); also present in V0 |
 
-The last three rows are footprint matters, not placement. Decide before ordering:
-- **TPS2121 vias:** 0.2 mm hole / 0.4 mm pad is below most fabs' standard (0.3 / 0.6, or 0.2 / 0.45 at extra cost).
-  Either enlarge them in the footprint or order with the finer capability.
+The last two rows are footprint matters, not placement:
+- **TPS2121 vias** were 0.2 mm hole / 0.4 mm pad in the vendor footprint. They are now **0.25 mm / 0.52 mm** on the
+  board (0.135 mm ring, 0.18 mm between the IN and OUT vias). This is set by the placement script on the four parts
+  on the board, not in the library: *Update From PCB Libraries* would put the small vias back, so re-run `PlaceV1` after it.
 - **U6 mask slivers:** the mask web between SOIC pins is 0.06 mm. Fabs normally open the mask across the row. Harmless,
   but the rule can be set to match the fab.
 
@@ -164,7 +170,7 @@ Found and fixed during this pass:
 - Each rail runs one way: jack → TVS (beside the jack) → input cap → TPS2121 → output caps → J1.
 - **J1 pin 1 is on the right.** Pins 1–4 (+3V3, +5V, +12V, +5V RF) are the right half; SWD is the left half.
   So +5V_TGT and +5V_RF_TGT come straight down the right side. **+3V3_TGT and +12V_TGT start on the left and must
-  cross** to J1's right half. Run both on the bottom layer in the free channel under SW1 (y ≈ 13–20 mm).
+  cross** to J1's right half. Run both on the bottom layer in the free channel under SW1 (y ≈ 13–19 mm).
 - Longest paths: +3V3_TGT ≈ 80 mm and +5V_TGT ≈ 75 mm. At 1.0 mm width in 1 oz copper that is about 40 mΩ, so about
   50 mV at 1.24 A. Use 1.5 mm or a pour for these two.
 - +VBUS_PROT crosses from U4 (top right) to the buck (top left): bottom layer under the Pico's USB end, ≥ 0.8 mm.
@@ -188,9 +194,9 @@ Found and fixed during this pass:
 ### Still open
 
 1. **Routing**, after sign-off. Enter the width / via rules from section 4 first.
-2. TPS2121 via size and the SOIC mask rule (section 6): fab decision.
+2. SOIC mask-sliver rule for U6 (section 6): set it to the fab's value.
 3. **L1 footprint** (`WE-PD2SR_7850`, a workspace part) has its origin about 1.9 m from its pads. The script places
    it by its outline. Fix the origin in the workspace library; it is not a local file.
 4. **Q1–Q4 footprint** `SOT103P240X110-3N`: its PcbLib is now part of the project, so imports find it. The compiled
    `SquidDebugger_V1.IntLib` still lacks it; recompile the LibPkg when convenient.
-5. Card envelope of the flight stack: confirm with Alex.
+5. Card envelope and hole pattern of the flight stack (now 61 × 107, holes 51 × 97): confirm with Alex.

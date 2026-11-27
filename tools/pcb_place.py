@@ -11,7 +11,8 @@ It does not route anything.
 """
 import os, math, itertools
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
-W, H, CORNER = 61.0, 100.0, 5.0
+UP = 7.0                                     # the board is 7 mm longer than V0: everything from the Pico up moved by this
+W, H, CORNER = 61.0, 100.0 + UP, 5.0
 ORIGIN_MIL = (11558.4886, 3895.504)          # board lower-left corner in the PcbDoc (absolute mils)
 PCB_PATH = r'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\DebugBoard.PcbDoc'
 DUMP_PATH = os.path.join(HERE, 'altium', 'pcb_dump.txt')
@@ -70,21 +71,21 @@ def put(des, cx, cy, a=0, side='T', origin=False):
     P[des] = (cx - x, cy - y, a, side)
 
 # ------------------------------------------------------------------ the placement table
-for d, x, y in (('MH1', 56, 5), ('MH2', 56, 95), ('MH3', 5, 95), ('MH4', 5, 5)): put(d, x, y, origin=True)
-put('U1', 30.5, 73.65, origin=True)                                       # Pico, as V0
+for d, x, y in (('MH1', 56, 5), ('MH2', 56, 95 + UP), ('MH3', 5, 95 + UP), ('MH4', 5, 5)): put(d, x, y, origin=True)
+put('U1', 30.5, 73.65 + UP, origin=True)                                       # Pico, as V0
 put('J1', 30.5, 4.03, origin=True); put('P4', 19.07, 11.42, origin=True); put('P3', 41.93, 11.42, 180, origin=True)
 # bench jacks, each with its TVS beside it
-put('TP3', 7.2, 77.5); put('D4', 15.4, 77.5, 90)                          # +3V3_PSU
-put('TP1', 53.8, 77.5); put('D5', 45.6, 77.5, 90)                         # +5V_PSU
+put('TP3', 7.2, 77.5 + UP); put('D4', 15.4, 77.5 + UP, 90)                          # +3V3_PSU
+put('TP1', 53.8, 77.5 + UP); put('D5', 45.6, 77.5 + UP, 90)                         # +5V_PSU
 put('TP2', 7.2, 34.2); put('D7', 15.4, 34.2, 90)                          # +12V_PSU
 put('TP4', 53.8, 34.2); put('D6', 45.6, 34.2, 90)                         # +5V_RF_PSU
-put('TP5', 36.7, 41.2)                                                    # GND
+put('TP5', 30.5, 35.3)                                                    # GND, on the centre line as in V0
 # VBUS current limit (top right, at Pico pin 40)
-put('U4', 49.7, 93.3, 270); put('C4', 45.0, 95.6, 90); put('R5', 45.0, 90.6, 270); put('C23', 49.7, 87.6)
-put('R3', 57.8, 89.9, 90); put('D1', 54.6, 87.0, 90)
+put('U4', 49.7, 93.3 + UP, 270); put('C4', 45.0, 95.6 + UP, 90); put('R5', 45.0, 90.6 + UP, 270); put('C23', 49.7, 87.6 + UP)
+put('R3', 57.8, 89.9 + UP, 90); put('D1', 54.6, 87.0 + UP, 90)
 # USB buck (top left)
-put('L1', 14.3, 88.0); put('U13', 16.3, 94.0); put('C18', 15.6, 97.85); put('C21', 10.9, 93.5); put('C22', 10.6, 96.3)
-put('C19', 2.9, 87.2, 90); put('C20', 6.3, 87.2, 90)
+put('L1', 14.3, 88.0 + UP); put('U13', 16.3, 94.0 + UP); put('C18', 15.6, 97.85 + UP); put('C21', 10.9, 93.5 + UP); put('C22', 10.6, 96.3 + UP)
+put('C19', 2.9, 87.2 + UP, 90); put('C20', 6.3, 87.2 + UP, 90)
 # UART header and LEDs
 put('P2', 13.74, 68.29, origin=True); put('R6', 13.35, 63.7, 90); put('R7', 16.75, 63.7, 90)
 put('D2', 13.35, 57.7, 90); put('D3', 16.75, 57.7, 90); put('R11', 4.6, 67.3); put('R12', 4.6, 64.2)
@@ -116,28 +117,26 @@ mux('U7', 52.0, 18.9, ['C24', 'C36', 'C37', 'C38', 'R34'], ['R32', 'R33', 'D15']
 put('D8', 45.25, 42.5); put('D9', 50.55, 42.5); put('D10', 55.85, 42.5)
 put('C27', 44.0, 48.4, 90); put('U9', 48.4, 48.4); put('C28', 52.4, 48.4, 90); put('R13', 55.4, 48.4, 90)
 put('C29', 50.2, 53.0); put('U10', 55.8, 53.1)
-# CAN: controller left of the GND jack, crystal under its OSC pins, transceiver below
-put('U6', 24.43, 40.8, 90); put('Y1', 27.6, 32.1, 180); put('C7', 22.2, 32.1); put('C8', 34.0, 32.1)
-put('C9', 19.2, 43.1, 90, 'B'); put('R10', 24.6, 44.5, 0, 'B')
+# CAN: controller on the centre line under the Pico's SPI1 pins, crystal to its lower right, transceiver by SW1
+put('U6', 30.5, 47.6, 90); put('Y1', 39.85, 39.0, 180); put('C7', 39.85, 35.3); put('C8', 39.85, 42.7)
+put('C9', 22.3, 51.4, 90); put('R10', 22.3, 46.9, 90)
 put('U2', 20.8, 20.3, 90); put('R1', 19.2, 26.1, 90); put('C1', 22.25, 26.1, 90)
 # force-on DIP switch and SWD series resistors (bottom side, on the way to J1 pins 9-12)
 put('SW1', 30.5, 23.4)
 for i, d in enumerate(('R8', 'R4', 'R2', 'R9')): put(d, 15.6 + 3.0 * i, 17.6, 90, 'B')
 # rail enables and ADC dividers: bottom side, between the Pico's two pin rows
 for i in range(4):
-    y0 = 51.0 + 6.4 * i
+    y0 = 51.0 + UP + 6.4 * i
     put(f'Q{i+1}', 25.0, y0, 0, 'B'); put(f'R{38+3*i}', 32.0, y0, 0, 'B')
     put(f'R{39+3*i}', 25.0, y0 + 3.1, 0, 'B'); put(f'R{40+3*i}', 32.0, y0 + 3.1, 0, 'B')
-for i, d in enumerate(('C42', 'C43', 'C44')): put(d, 25.0 if i != 1 else 32.0, 77.0 + (2.9 if i == 2 else 0), 0, 'B')
-for i in range(8): put(f'R{50+i}', 25.0 if i < 4 else 32.0, 83.2 + 2.9 * (i % 4), 0, 'B')
-put('R57', 32.0, 79.9, 0, 'B')
+for i, d in enumerate(('C42', 'C43', 'C44')): put(d, 25.0 if i != 1 else 32.0, 77.0 + UP + (2.9 if i == 2 else 0), 0, 'B')
+for i in range(8): put(f'R{50+i}', 25.0 if i < 4 else 32.0, 83.2 + UP + 2.9 * (i % 4), 0, 'B')
+put('R57', 32.0, 79.9 + UP, 0, 'B')
 
-LOGO = (30.5, 30.6, 0); LOGO_BOX = (23.7, 25.4, 37.3, 35.8)                       # SDSL logo: bottom side, centre
-LABELS = {'+3.3V': (1.5, 69.9), '+5V': (49.6, 68.9), '+12V': (2.0, 26.3), '+5V RF': (47.6, 26.3), 'GND': (36.6, 33.4)}
-TITLE = (30.5, 22.6, 1.2)                   # "Squid Debugger V1 / By: Alex Jaber", bottom side, under the logo
-QUOTE = (30.5, 8.75, 0.8)                    # the Clarke quote, bottom side, one line above J1
-TITLE_BOX = (TITLE[0] - 10.0, TITLE[1] - 2.2, TITLE[0] + 10.0, TITLE[1] + 2.2)
-QUOTE_BOX = (QUOTE[0] - 26.5, QUOTE[1] - 0.7, QUOTE[0] + 26.5, QUOTE[1] + 0.7)
+LOGO = (30.5, 46.3, 0); LOGO_BOX = (23.7, 41.0, 37.3, 51.6)                       # SDSL logo: bottom side, centre
+LABELS = {'+3.3V': (1.5, 76.6), '+5V': (49.6, 76.6), '+12V': (2.0, 26.3), '+5V RF': (47.6, 26.3), 'GND': (36.7, 31.6)}
+TITLE = (30.5, 22.6, 1.0)                   # "Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber", bottom side
+TITLE_BOX = (TITLE[0] - 20.0, TITLE[1] - 2.2, TITLE[0] + 20.0, TITLE[1] + 2.2)
 FRAME = (11.2, 51.4, 19.0, 72.15)            # V0 silk frame around the UART parts (free tracks on the top overlay)
 FRAME_LINES = [(FRAME[0] - 0.1, FRAME[1] - 0.1, FRAME[2] + 0.1, FRAME[1] + 0.1), (FRAME[0] - 0.1, FRAME[3] - 0.1, FRAME[2] + 0.1, FRAME[3] + 0.1),
                (FRAME[0] - 0.1, FRAME[1] - 0.1, FRAME[0] + 0.1, FRAME[3] + 0.1), (FRAME[2] - 0.1, FRAME[1] - 0.1, FRAME[2] + 0.1, FRAME[3] + 0.1)]
@@ -183,7 +182,7 @@ def check():
     for d in P:
         if d not in ('U1', 'J1') and not inside_board(box(d), 0.5): bad.append((d, 'EDGE'))
         texts = [(txt, r) for txt, side, a, r in FREE_TEXT if side == P[d][3] and not (txt in LABELS and a == 0) and txt != 'TX RX']
-        if P[d][3] == 'B': texts += [('title', TITLE_BOX), ('quote', QUOTE_BOX), ('logo', LOGO_BOX)]
+        if P[d][3] == 'B': texts += [('title', TITLE_BOX), ('logo', LOGO_BOX)]
         else: texts += [('UART frame', r) for r in FRAME_LINES]
         for txt, r in texts:
             if any(hit(r, q, 0.1) for q in [box(d)] if not ROUND(d)): bad.append((d, 'ON TEXT ' + txt))
@@ -203,7 +202,7 @@ def solve_designators():
         obstacles[side].append((r, None, 0.15, True))
     for txt, (x, y) in LABELS.items():
         w, h = text_size(txt, LBL_H, 0.25); obstacles['T'].append(((x, y, x + w, y + h), None, 0.15, True))
-    for r in (TITLE_BOX, QUOTE_BOX, LOGO_BOX): obstacles['B'].append((r, None, 0.15, True))
+    for r in (TITLE_BOX, LOGO_BOX): obstacles['B'].append((r, None, 0.15, True))
     for r in FRAME_LINES + [(TXRX[0] - 3.4, TXRX[1] - 0.9, TXRX[0] + 3.4, TXRX[1] + 0.9)]: obstacles['T'].append((r, None, 0.15, True))
     def candidates(d):
         b = box(d); cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
@@ -272,7 +271,7 @@ def svg(path):
         o.append('</g>'); return o
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{2*W*S+3*pad}" height="{H*S+2*pad+16}" font-family="Arial">',
            '<rect width="100%" height="100%" fill="#fff"/>']
-    out += board(pad, 'T', 'TOP (61 x 100 mm)') + board(W * S + 2 * pad, 'B', 'BOTTOM (seen from below)') + ['</svg>']
+    out += board(pad, 'T', f'TOP ({W:.0f} x {H:.0f} mm)') + board(W * S + 2 * pad, 'B', 'BOTTOM (seen from below)') + ['</svg>']
     open(path, 'w').write('\n'.join(out))
     try:
         import pymupdf; pymupdf.open(path)[0].get_pixmap(dpi=100).save(path[:-3] + 'png')
@@ -350,6 +349,50 @@ def pas(path):
          '  Wiped := Lst.Count;',
          '  For I := 0 To Lst.Count - 1 Do Board.RemovePCBObject(Lst.Items[I]);',
          '  Lst.Free;', 'End;', '',
+         'Procedure Vias(Des : String);   { TPS2121 via-in-pad stubs: 0.2 / 0.4 mm in the vendor footprint -> 0.25 / 0.52 mm }',
+         'Var C : IPCB_Component; G : IPCB_GroupIterator; Vi : IPCB_Via;', 'Begin',
+         '  C := Board.GetPcbComponentByRefDes(Des);', '  If C = Nil Then Exit;',
+         '  G := C.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(eViaObject));',
+         '  Vi := G.FirstPCBObject;',
+         '  While Vi <> Nil Do Begin',
+         '    Vi.BeginModify; Vi.HoleSize := MilsToCoord(0.25 / 0.0254); Vi.Size := MilsToCoord(0.52 / 0.0254); Vi.EndModify; Vi.GraphicallyInvalidate;',
+         '    Vi := G.NextPCBObject;', '  End;',
+         '  C.GroupIterator_Destroy(G);', 'End;', '',
+         'Procedure StretchV1;   { make the board UP mm longer: move the top edge, and any free mechanical drawing above mid-board }',
+         'Var BO : IPCB_BoardOutline; I : Integer; S : TPolySegment; Lim, D : Integer; It : IPCB_BoardIterator; T : IPCB_Track; A : IPCB_Arc; N : Integer;', 'Begin'] + get_board + [
+         f'  D := MilsToCoord({UP} / 0.0254); Lim := MilsToCoord(Y0 + 50 / 0.0254); N := 0;',
+         '  BO := Board.BoardOutline;',
+         f"  If BO.BoundingRectangle.Top > MilsToCoord(Y0 + {H - 2} / 0.0254) Then Begin ShowMessage('Board is already stretched'); Exit; End;",
+         '  PCBServer.PreProcess;',
+         '  BO.BeginModify;',
+         '  For I := 0 To BO.PointCount Do Begin',
+         '    S := BO.Segments[I];',
+         '    If S.vy > Lim Then Begin S.vy := S.vy + D; S.cy := S.cy + D; BO.Segments[I] := S; End;',
+         '  End;',
+         '  BO.EndModify; BO.Rebuild; BO.Validate; BO.GraphicallyInvalidate;',
+         '  It := Board.BoardIterator_Create; It.AddFilter_ObjectSet(MkSet(eTrackObject));',
+         '  It.AddFilter_LayerSet(AllLayers); It.AddFilter_Method(eProcessAll);',
+         '  T := It.FirstPCBObject;',
+         '  While T <> Nil Do Begin',
+         '    If (Not T.InComponent) And (T.Layer <> eTopOverlay) And (T.Layer <> eBottomOverlay) Then Begin',
+         '      T.BeginModify;',
+         '      If T.y1 > Lim Then Begin T.y1 := T.y1 + D; N := N + 1; End;',
+         '      If T.y2 > Lim Then T.y2 := T.y2 + D;',
+         '      T.EndModify; T.GraphicallyInvalidate;',
+         '    End;',
+         '    T := It.NextPCBObject;', '  End;',
+         '  Board.BoardIterator_Destroy(It);',
+         '  It := Board.BoardIterator_Create; It.AddFilter_ObjectSet(MkSet(eArcObject));',
+         '  It.AddFilter_LayerSet(AllLayers); It.AddFilter_Method(eProcessAll);',
+         '  A := It.FirstPCBObject;',
+         '  While A <> Nil Do Begin',
+         '    If (Not A.InComponent) And (A.Layer <> eTopOverlay) And (A.Layer <> eBottomOverlay) And (A.YCenter > Lim) Then Begin',
+         '      A.BeginModify; A.YCenter := A.YCenter + D; A.EndModify; A.GraphicallyInvalidate; N := N + 1;',
+         '    End;',
+         '    A := It.NextPCBObject;', '  End;',
+         '  Board.BoardIterator_Destroy(It);',
+         '  PCBServer.PostProcess; Board.ViewManager_FullUpdate;',
+         "  ShowMessage('Outline stretched; free mechanical tracks/arcs moved: ' + IntToStr(N));", 'End;', '',
          'Procedure NoRooms;   { the ECO adds a placement room off the board; nothing is meant to be confined to it }',
          'Var It : IPCB_BoardIterator; O : IPCB_Rule; Lst : TInterfaceList; I : Integer;', 'Begin',
          '  Lst := TInterfaceList.Create; It := Board.BoardIterator_Create;',
@@ -372,8 +415,9 @@ def pas(path):
          '      Flat := (Round(T.Rotation) Mod 180) = 0;',
          "      If Flat And (T.Size < MilsToCoord(40)) And ((T.Text = '5V') Or (T.Text = '5V RF')) Then Lst.Add(T);   { labels of the deleted V0 jumper P1 }",
          "      If Pos('Squid Debugger V0', T.Text) > 0 Then Begin T.BeginModify; T.Text := StringReplace(T.Text, 'Squid Debugger V0', 'Squid Debugger V1', 0); T.EndModify; End;",
+         "      If (Pos('By: Alex Jaber', T.Text) > 0) Then Begin T.BeginModify; T.Text := StringReplace(T.Text, 'By: Alex Jaber', 'By: Bjorn Bengtsson and Alex Jaber', 0); T.EndModify; End;",
          f"      If Pos('Squid Debugger', T.Text) > 0 Then Art(T, {TITLE[0]}, {TITLE[1]}, {TITLE[2]}, {TITLE_BOX[2]-TITLE_BOX[0]}, {TITLE_BOX[3]-TITLE_BOX[1]});",
-         f"      If Pos('sufficiently advanced', T.Text) > 0 Then Art(T, {QUOTE[0]}, {QUOTE[1]}, {QUOTE[2]}, {QUOTE_BOX[2]-QUOTE_BOX[0]}, {QUOTE_BOX[3]-QUOTE_BOX[1]});",
+         "      If Pos('sufficiently advanced', T.Text) > 0 Then Lst.Add(T);   { the Clarke quote: removed on request }",
          "      If T.Text = 'TX RX' Then Begin",
          f'        T.BeginModify; T.Size := MilsToCoord({TXRX[2]} / 0.0254); T.Width := MilsToCoord(0.2 / 0.0254); T.EndModify;',
          '        T.BeginModify;',
@@ -468,11 +512,12 @@ def pas(path):
     for _ in range(2):                       # second pass settles text whose box changed with its new size
         for d, (x, y, a) in sorted(DES.items()): L.append(f"  Des('{d}', {x:.3f}, {y:.3f}, {a});")
     L.append('  NoRooms;')
+    L.append("  Vias('U3'); Vias('U5'); Vias('U7'); Vias('U8');")
     keep_clear = [(r, 0.2) for d in P for r in pads_of(d, 'B')]
     keep_clear += [((x - (text_size(d)[0] if not a else text_size(d)[1]) / 2, y - (text_size(d)[1] if not a else text_size(d)[0]) / 2,
                      x + (text_size(d)[0] if not a else text_size(d)[1]) / 2, y + (text_size(d)[1] if not a else text_size(d)[0]) / 2), 0.25)
                    for d, (x, y, a) in DES.items() if P[d][3] == 'B']
-    keep_clear += [(TITLE_BOX, 0.6), (QUOTE_BOX, 0.6)]
+    keep_clear += [(TITLE_BOX, 0.6)]
     for r, m in keep_clear:                  # V0 halftone artwork on the bottom silk: open a window under pads and text
         L.append(f'  Wipe(eRegionObject, eBottomOverlay, {r[0]-m:.2f}, {r[1]-m:.2f}, {r[2]+m:.2f}, {r[3]+m:.2f});')
     L += ['  PCBServer.PostProcess;', '  Board.ViewManager_FullUpdate;',
