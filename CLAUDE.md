@@ -166,7 +166,9 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
   The V0 board STEP body ("Debugging board v2") was removed from the PcbDoc (OldBoardOff).
 - ARTWORK (changelog #33): the user placed their own mantis + ladybug halftone on the bottom silk (4680 free regions) and views
   the back in LANDSCAPE (view rotated; do not press 0 / run pcb_shots.py without asking, it resets their view rotation).
-  ArtWindows (from the last DumpV1) clears dots under bottom designators / pads / title, never pieces > 1.5 mm. The title is
+  ArtWindows (from the last DumpV1) deletes dots under bottom designators / pads / title, never pieces > 1.5 mm; ArtCut then CLIPS
+  the windows out of the big pieces (PCBContourUtilities.ClipSetContour + rebuild with holes via NR.GeometricPolygon := GP; works,
+  takes ~3 min; ArtCutTest does one piece). Run both after the user moves bottom text: DumpV1 -> pcb_place.py pin -> ArtWindows -> ArtCut. The title is
   hand-set (rotated 270): PlaceV1 no longer moves it. ArtOff would delete their artwork: never run it unasked.
 - Change log for presentation: design/V1_CHANGELOG.md (what/why/alternatives) — append every change.
 - Net scope Global (HierarchyMode=3) DONE. TPS2121RUXR = CMP-019-00076-1 (pins verified).

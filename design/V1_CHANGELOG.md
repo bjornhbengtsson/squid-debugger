@@ -510,12 +510,13 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
 - **Windows:** the new `ArtWindows` script removes only the artwork dots that touch a bottom designator (0.25 mm
   margin), a bottom pad (0.15 mm), a through-hole pad or the title, so the text sits on bare board. It works from the
   last `DumpV1`, so it follows where the text really is, and it moves nothing. 676 dots were removed.
-- **Limit:** where bright areas of the picture have merged into solid pieces larger than 1.5 mm, the script leaves them
-  alone (197 hits), because removing one would cut a visible hole in the mantis. A few designators in those areas are
-  still partly covered.
+- **Solid areas:** where bright areas of the picture are solid pieces larger than 1.5 mm (the mantis body is one shape
+  with about 2000 holes in it), deleting the piece would cut a visible hole. The `ArtCut` script instead clips just
+  the window out of the piece, using Altium's own polygon functions (`ClipSetContour`, difference) and rebuilding the
+  piece with its holes. 259 pieces were clipped. Every bottom designator, pad and jack now has its own window.
 - **Alternatives:** inverted designators (white tag, dark letters; keeps every dot but adds tags all over the picture);
   moving designators off the picture (breaks the hand-set symmetry); re-making the artwork with dots that never merge,
-  so every window can be cut cleanly (best result, needs the picture re-imported).
+  so every window can be cut by deleting dots (not needed once clipping worked).
 - **Script change:** `PlaceV1` no longer touches the title text (it is hand-set now) and uses the same careful removal.
 - **Open:** R40's designator sits 17 mm from its part, on a pad of P2: probably dragged by accident.
 
