@@ -13,6 +13,7 @@ Status (Nov 27 2026): **components placed, silkscreen done, DRC run. Not routed.
 |---|---|
 | ![top](../screenshots/V1_pcb_top.jpg) | ![bottom](../screenshots/V1_pcb_bottom.jpg) |
 | ![top 3D](../screenshots/V1_pcb_top_3d.jpg) | ![bottom 3D](../screenshots/V1_pcb_bottom_3d.jpg) |
+| ![2D top](../screenshots/V1_pcb_2d_top.png) | ![2D bottom](../screenshots/V1_pcb_2d_bottom.png) |
 
 **3D models:** every part except the mounting holes has a 3D body. 21 parts whose footprints had none (the four eFuses, SW1, the six
 22 µF caps, the nine SOT-23 diodes, U10) get their STEP file from `hardware/Libraries/SquidDebugger_V1/3D` when
@@ -150,6 +151,12 @@ centre line as in V0, everything from the Pico upward moved up 10 mm (Pico, the 
 holes). The UART group stayed inside its V0 silk frame.
 
 ### Silkscreen
+
+**Hand-placed text is kept.** Bjorn positions designators and labels by eye for symmetry. `python tools/pcb_place.py pin`
+(after `DumpV1`) records where every designator is (`tools/des_pins.json`); `PlaceV1` then puts each one back exactly
+there, and the solver only places designators that are not in the file. The jack designators TP1–TP4 are mirror images
+of each other (5.3 mm out, 4.8 mm up from each jack centre), and each rail label is centred on its jack's centre line
+(`LABELS` in `pcb_place.py`). After moving text by hand in Altium: `DumpV1`, then `python tools/pcb_place.py pin`.
 
 - All 161 designators: 0.8 mm tall, 0.15 mm stroke, next to their part (never more than 3 mm away).
 - None is on a pad, hole or via, under the Pico, outside the board, or on another designator. `pcb_check.py` verifies this

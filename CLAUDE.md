@@ -155,6 +155,15 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
 - PlaceV1 re-positions the title, labels and every designator from the tables in pcb_place.py: a hand move in Altium is
   undone on the next run. Before running PlaceV1 after the user has worked in Altium, compare their view with the tables
   (title is now at TITLE = (30.5, 5.6), text "By: Bjorn Bengtsson & Alex Jaber", set by the user Nov 27).
+- HAND-PLACED TEXT (changelog #32): the user moves designators/labels by eye; SYMMETRY matters to them. tools/des_pins.json pins
+  all designators (PlaceV1 restores them; solver only for unpinned). After the user moved text: DumpV1 -> python tools/pcb_place.py pin
+  BEFORE any PlaceV1. Rail labels = LABELS table (centred on jacks), title = TITLE.
+- PICTURES: python tools/pcb_shots.py (all | flat | tilt | 2d) drives Altium by keys + Shift+right-drag and writes
+  screenshots/V1_pcb_{top,bottom,top_3d,bottom_3d}.jpg and V1_pcb_2d_{top,bottom}.png. It captures with PrintWindow (works for
+  the 3D view) and refuses to type unless Altium is the foreground process. A small always-on-top Claude window floats over
+  Altium on this PC: never send Esc/keys blindly. Schematic images: File > Smart PDF > Alt+N, Alt+P (Current Project), Alt+N,
+  Finish twice -> python tools/sch_images.py (writes V1_sheet1..6 PNGs + V1_schematic.pdf); delete the PDF in hardware/ after.
+  The V0 board STEP body ("Debugging board v2") was removed from the PcbDoc (OldBoardOff).
 - Change log for presentation: design/V1_CHANGELOG.md (what/why/alternatives) — append every change.
 - Net scope Global (HierarchyMode=3) DONE. TPS2121RUXR = CMP-019-00076-1 (pins verified).
 - MPS panel is a slide-out + right-click menu: invisible to computer use → user creates workspace parts.

@@ -46,7 +46,8 @@ for d, n in N.items():
     if abs(n['h'] - pp.TXT_H) > 0.01: probs.append((d, f'height {n["h"]:.2f}'))
     if not pp.inside_board(r, 0.3): probs.append((d, 'off board / at edge'))
     for o, k, pr in PADS:
-        if (k == 'M' or k == n['side']) and pp.hit(r, pr, 0.05): probs.append((d, f'on pad of {o}')); break
+        on = pp.hit_round(pr, r, 0.05) if pp.ROUND(o) else pp.hit(r, pr, 0.05)        # jack and hole pads are round
+        if (k == 'M' or k == n['side']) and on: probs.append((d, f'on pad of {o}')); break
     if n['side'] == 'T' and d != 'U1' and pp.hit(r, pp.box('U1')): probs.append((d, 'under the Pico'))
     b = C[d]['box'] if d != 'U1' else pp.box('U1')
     gap = max(r[0] - b[2], b[0] - r[2], r[1] - b[3], b[1] - r[3], 0)

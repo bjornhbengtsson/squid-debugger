@@ -204,6 +204,28 @@ Begin
   Lst.Free;
 End;
 
+Procedure OldBoardOff;   { remove the free 3D body of the V0 board ("Debugging board v2.step", 100 mm long): in 2D its hatch stops short of the new top edge }
+Var It : IPCB_BoardIterator; O : IPCB_ComponentBody; Lst : TInterfaceList; I : Integer; S : String;
+Begin
+  Board := PCBServer.GetPCBBoardByPath('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\DebugBoard.PcbDoc');
+  If Board = Nil Then Board := PCBServer.GetCurrentPCBBoard;
+  If Board = Nil Then Begin ShowMessage('Open DebugBoard.PcbDoc first'); Exit; End;
+  X0 := 11558.4886; Y0 := 3895.504;
+  S := ''; PCBServer.PreProcess;
+  Lst := TInterfaceList.Create; It := Board.BoardIterator_Create;
+  It.AddFilter_ObjectSet(MkSet(eComponentBodyObject)); It.AddFilter_LayerSet(AllLayers); It.AddFilter_Method(eProcessAll);
+  O := It.FirstPCBObject;
+  While O <> Nil Do Begin
+    If Not O.InComponent Then Begin S := S + '[' + O.Identifier + '] '; If Pos('Debugging board', O.Identifier) > 0 Then Lst.Add(O); End;
+    O := It.NextPCBObject;
+  End;
+  Board.BoardIterator_Destroy(It);
+  For I := 0 To Lst.Count - 1 Do Board.RemovePCBObject(Lst.Items[I]);
+  PCBServer.PostProcess; Board.ViewManager_FullUpdate;
+  ShowMessage('Free 3D bodies found: ' + S + '  removed: ' + IntToStr(Lst.Count));
+  Lst.Free;
+End;
+
 Procedure WipeRound(X, Y, R : Double);   { remove bottom-silk artwork dots whose centre is inside a circle (round pads) }
 Var SI : IPCB_SpatialIterator; O : IPCB_Primitive; Lst : TInterfaceList; I : Integer; Rc : TCoordRect; Cx, Cy, Dx, Dy, Rr : Double;
 Begin
@@ -514,10 +536,10 @@ Begin
         T.EndModify; T.GraphicallyInvalidate;
       End;
       If Flat Then Begin
-        If T.Text = '+3.3V' Then Begin X := 1.5; Y := 76.6; End;
-        If T.Text = '+5V' Then Begin X := 49.6; Y := 76.6; End;
-        If T.Text = '+12V' Then Begin X := 2.0; Y := 26.3; End;
-        If T.Text = '+5V RF' Then Begin X := 47.6; Y := 26.3; End;
+        If T.Text = '+3.3V' Then Begin X := 3.58; Y := 78.7; End;
+        If T.Text = '+5V' Then Begin X := 51.55; Y := 78.7; End;
+        If T.Text = '+12V' Then Begin X := 4.33; Y := 26.3; End;
+        If T.Text = '+5V RF' Then Begin X := 49.3; Y := 26.3; End;
         If T.Text = 'GND' Then Begin X := 28.2; Y := 30.25; End;
       End;
     End;
@@ -865,7 +887,7 @@ Begin
   Put('U15', 52.000, 78.500, 0, True);
   Put('U16', 44.500, 31.000, 90, True);
   Put('U17', 16.500, 31.000, 90, True);
-  Put('U2', 20.800, 20.613, 90, False);
+  Put('U2', 20.800, 20.612, 90, False);
   Put('U3', 10.500, 45.300, 0, False);
   Put('U4', 49.700, 102.977, 270, False);
   Put('U5', 51.100, 61.500, 0, False);
@@ -1015,10 +1037,10 @@ Begin
   Des('R8', 15.600, 20.141, 0);
   Des('R9', 24.600, 20.141, 0);
   Des('SW1', 30.500, 16.655, 0);
-  Des('TP1', 53.800, 93.700, 0);
-  Des('TP2', 2.806, 40.400, 0);
-  Des('TP3', 7.200, 93.700, 0);
-  Des('TP4', 58.194, 28.000, 0);
+  Des('TP1', 59.100, 92.300, 0);
+  Des('TP2', 1.900, 39.000, 0);
+  Des('TP3', 1.900, 92.300, 0);
+  Des('TP4', 59.100, 39.000, 0);
   Des('TP5', 23.694, 38.300, 0);
   Des('U1', 41.929, 83.650, 0);
   Des('U10', 56.619, 55.570, 0);
@@ -1176,10 +1198,10 @@ Begin
   Des('R8', 15.600, 20.141, 0);
   Des('R9', 24.600, 20.141, 0);
   Des('SW1', 30.500, 16.655, 0);
-  Des('TP1', 53.800, 93.700, 0);
-  Des('TP2', 2.806, 40.400, 0);
-  Des('TP3', 7.200, 93.700, 0);
-  Des('TP4', 58.194, 28.000, 0);
+  Des('TP1', 59.100, 92.300, 0);
+  Des('TP2', 1.900, 39.000, 0);
+  Des('TP3', 1.900, 92.300, 0);
+  Des('TP4', 59.100, 39.000, 0);
   Des('TP5', 23.694, 38.300, 0);
   Des('U1', 41.929, 83.650, 0);
   Des('U10', 56.619, 55.570, 0);
@@ -1485,9 +1507,9 @@ Begin
   Wipe(eRegionObject, eBottomOverlay, 48.35, 68.92, 51.11, 70.48);
   Wipe(eRegionObject, eBottomOverlay, 26.77, 63.32, 29.53, 64.88);
   Wipe(eRegionObject, eBottomOverlay, 26.77, 69.72, 29.53, 71.28);
-  Wipe(eRegionObject, eBottomOverlay, 26.77, 76.12, 29.53, 77.67);
+  Wipe(eRegionObject, eBottomOverlay, 26.77, 76.12, 29.53, 77.68);
   Wipe(eRegionObject, eBottomOverlay, 26.77, 92.42, 29.53, 93.98);
-  Wipe(eRegionObject, eBottomOverlay, 26.77, 95.33, 29.53, 96.88);
+  Wipe(eRegionObject, eBottomOverlay, 26.77, 95.32, 29.53, 96.88);
   Wipe(eRegionObject, eBottomOverlay, 26.77, 98.22, 29.53, 99.78);
   Wipe(eRegionObject, eBottomOverlay, 6.82, 71.22, 9.58, 72.77);
   Wipe(eRegionObject, eBottomOverlay, 54.77, 73.12, 57.53, 74.68);
@@ -1495,24 +1517,24 @@ Begin
   Wipe(eRegionObject, eBottomOverlay, 23.37, 30.23, 26.13, 31.77);
   Wipe(eRegionObject, eBottomOverlay, 45.36, 79.96, 48.12, 81.51);
   Wipe(eRegionObject, eBottomOverlay, 56.25, 68.92, 59.01, 70.48);
-  Wipe(eRegionObject, eBottomOverlay, 25.12, 57.98, 27.18, 59.53);
+  Wipe(eRegionObject, eBottomOverlay, 25.12, 57.98, 27.18, 59.52);
   Wipe(eRegionObject, eBottomOverlay, 15.27, 43.23, 18.03, 44.77);
-  Wipe(eRegionObject, eBottomOverlay, 55.87, 59.42, 58.63, 60.97);
+  Wipe(eRegionObject, eBottomOverlay, 55.87, 59.43, 58.63, 60.98);
   Wipe(eRegionObject, eBottomOverlay, 43.22, 75.03, 45.98, 76.58);
-  Wipe(eRegionObject, eBottomOverlay, 23.62, 84.37, 26.38, 85.92);
+  Wipe(eRegionObject, eBottomOverlay, 23.62, 84.38, 26.38, 85.93);
   Wipe(eRegionObject, eBottomOverlay, 26.77, 82.52, 29.53, 84.08);
   Wipe(eRegionObject, eBottomOverlay, 15.27, 46.12, 18.03, 47.67);
-  Wipe(eRegionObject, eBottomOverlay, 55.87, 62.32, 58.63, 63.87);
+  Wipe(eRegionObject, eBottomOverlay, 55.87, 62.33, 58.63, 63.88);
   Wipe(eRegionObject, eBottomOverlay, 56.62, 80.27, 59.38, 81.82);
   Wipe(eRegionObject, eBottomOverlay, 1.07, 43.23, 3.83, 44.77);
-  Wipe(eRegionObject, eBottomOverlay, 41.67, 59.42, 44.43, 60.97);
+  Wipe(eRegionObject, eBottomOverlay, 41.67, 59.43, 44.43, 60.98);
   Wipe(eRegionObject, eBottomOverlay, 2.62, 71.22, 5.38, 72.77);
   Wipe(eRegionObject, eBottomOverlay, 7.37, 46.12, 10.13, 47.67);
-  Wipe(eRegionObject, eBottomOverlay, 47.97, 62.32, 50.73, 63.87);
+  Wipe(eRegionObject, eBottomOverlay, 47.97, 62.33, 50.73, 63.88);
   Wipe(eRegionObject, eBottomOverlay, 2.36, 77.72, 5.12, 79.28);
-  Wipe(eRegionObject, eBottomOverlay, 4.22, 55.17, 6.98, 56.72);
-  Wipe(eRegionObject, eBottomOverlay, 12.12, 55.17, 14.88, 56.72);
-  Wipe(eRegionObject, eBottomOverlay, 7.37, 40.32, 10.13, 41.87);
+  Wipe(eRegionObject, eBottomOverlay, 4.22, 55.18, 6.98, 56.73);
+  Wipe(eRegionObject, eBottomOverlay, 12.12, 55.18, 14.88, 56.73);
+  Wipe(eRegionObject, eBottomOverlay, 7.37, 40.33, 10.13, 41.88);
   Wipe(eRegionObject, eBottomOverlay, 7.37, 49.02, 10.13, 50.57);
   Wipe(eRegionObject, eBottomOverlay, 20.57, 19.37, 22.63, 20.92);
   Wipe(eRegionObject, eBottomOverlay, 15.27, 49.02, 18.03, 50.57);
@@ -1524,28 +1546,28 @@ Begin
   Wipe(eRegionObject, eBottomOverlay, 33.77, 66.62, 36.53, 68.18);
   Wipe(eRegionObject, eBottomOverlay, 33.77, 69.72, 36.53, 71.28);
   Wipe(eRegionObject, eBottomOverlay, 33.77, 73.02, 36.53, 74.58);
-  Wipe(eRegionObject, eBottomOverlay, 33.77, 76.12, 36.53, 77.67);
-  Wipe(eRegionObject, eBottomOverlay, 33.77, 79.42, 36.53, 80.97);
+  Wipe(eRegionObject, eBottomOverlay, 33.77, 76.12, 36.53, 77.68);
+  Wipe(eRegionObject, eBottomOverlay, 33.77, 79.42, 36.53, 80.98);
   Wipe(eRegionObject, eBottomOverlay, 23.62, 103.03, 26.38, 104.58);
   Wipe(eRegionObject, eBottomOverlay, 33.77, 92.42, 36.53, 93.98);
-  Wipe(eRegionObject, eBottomOverlay, 33.77, 95.33, 36.53, 96.88);
+  Wipe(eRegionObject, eBottomOverlay, 33.77, 95.32, 36.53, 96.88);
   Wipe(eRegionObject, eBottomOverlay, 33.77, 89.12, 36.53, 90.68);
   Wipe(eRegionObject, eBottomOverlay, 20.22, 25.52, 22.98, 27.07);
-  Wipe(eRegionObject, eBottomOverlay, 10.62, 18.07, 13.38, 19.62);
+  Wipe(eRegionObject, eBottomOverlay, 10.62, 18.08, 13.38, 19.62);
   Wipe(eRegionObject, eBottomOverlay, 2.72, 18.73, 5.48, 20.28);
   Wipe(eRegionObject, eBottomOverlay, 11.02, 71.22, 13.78, 72.77);
   Wipe(eRegionObject, eBottomOverlay, 38.02, 24.12, 40.78, 25.67);
   Wipe(eRegionObject, eBottomOverlay, 14.57, 19.37, 16.63, 20.92);
   Wipe(eRegionObject, eBottomOverlay, 15.12, 34.88, 17.88, 36.43);
-  Wipe(eRegionObject, eBottomOverlay, 30.62, 84.37, 33.38, 85.92);
+  Wipe(eRegionObject, eBottomOverlay, 30.62, 84.38, 33.38, 85.93);
   Wipe(eRegionObject, eBottomOverlay, 33.77, 82.52, 36.53, 84.08);
   Wipe(eRegionObject, eBottomOverlay, 43.12, 25.57, 45.88, 27.12);
-  Wipe(eRegionObject, eBottomOverlay, 38.02, 39.08, 40.78, 40.63);
-  Wipe(eRegionObject, eBottomOverlay, 20.22, 37.67, 22.98, 39.22);
-  Wipe(eRegionObject, eBottomOverlay, 15.27, 40.32, 18.03, 41.87);
+  Wipe(eRegionObject, eBottomOverlay, 38.02, 39.08, 40.78, 40.62);
+  Wipe(eRegionObject, eBottomOverlay, 20.22, 37.68, 22.98, 39.23);
+  Wipe(eRegionObject, eBottomOverlay, 15.27, 40.33, 18.03, 41.88);
   Wipe(eRegionObject, eBottomOverlay, 2.72, 12.02, 5.48, 13.57);
   Wipe(eRegionObject, eBottomOverlay, 46.02, 18.73, 48.78, 20.28);
-  Wipe(eRegionObject, eBottomOverlay, 53.92, 18.07, 56.68, 19.62);
+  Wipe(eRegionObject, eBottomOverlay, 53.92, 18.08, 56.68, 19.62);
   Wipe(eRegionObject, eBottomOverlay, 41.16, 77.72, 43.92, 79.28);
   Wipe(eRegionObject, eBottomOverlay, 44.82, 54.62, 47.58, 56.17);
   Wipe(eRegionObject, eBottomOverlay, 52.72, 54.62, 55.48, 56.17);

@@ -481,6 +481,28 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
   to "&". The placement script had the old position and moved it back on its next run; `TITLE` in `pcb_place.py`
   now holds Bjorn's position (30.5, 5.6 mm), so the script keeps it there.
 
+## 32. Hand-placed text kept; old board body removed; pictures taken by script (DONE Nov 27)
+- **Designators pinned.** Bjorn moved designators and rail labels by hand for symmetry. The placement script used to
+  re-solve every designator on each run, which would undo that. Now `python tools/pcb_place.py pin` records all 161
+  positions in `tools/des_pins.json` and `PlaceV1` restores exactly those. Two small adjustments were made for exact
+  symmetry: TP1–TP4 designators sit at the same offset from each jack (5.3 mm out, 4.8 mm up), and the four rail
+  labels are centred on their jacks (+12V moved 0.35 mm, +5V RF 0.6 mm).
+  *Alternative:* pin only the designators that differ from the solver's result (rejected: the solver's result changes
+  whenever a part moves, so "unchanged" ones would drift).
+- **2D view fixed at the top of the board.** The magenta hatch that stopped 10 mm below the top edge was a free 3D body
+  of the old 100 mm V0 board ("Debugging board v2.step") left in the file. Removed with `OldBoardOff`. The 3D view is
+  unchanged, because Altium draws the board from the board shape, not from that body.
+  *Alternative:* replace it with a STEP of the new board (not needed: nothing uses it).
+- **Board pictures are scripted:** `python tools/pcb_shots.py` drives the open Altium window (3D straight down, both
+  sides; 3D tilted, both sides; 2D, both sides), crops each picture to the board, and saves six files in `screenshots/`.
+  The tilt is a fixed Shift + right-drag sequence, so the angle is the same every time. It reads the picture from
+  Altium's own window, so a window floating on top does not get into it, and it stops if Altium is not the active window.
+  *Why that last part:* the first version sent an Esc key before checking; a small Claude window was floating over
+  Altium, the Esc went there and cancelled the run.
+- **Schematic pictures:** all six sheets are re-exported (`python tools/sch_images.py` after File » Smart PDF »
+  Current Project) and shown on the README front page. Sheets 2–5 changed with the limiter stage (IN1 is `+x_LIM`).
+- **Verified:** `pcb_check.py` errors = 0 (161 parts, 161 designators, 21 models seated).
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.

@@ -9,7 +9,7 @@ DumpV1 script writes from the open PcbDoc. All positions are mm from the board's
 The script places parts, positions and sizes every designator, moves the jack labels and sets the layer stack.
 It does not route anything.
 """
-import os, math, itertools
+import os, sys, math, itertools
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
 UP = 10.0                                    # the board is 10 mm longer than V0: everything from the Pico up moved by this
 W, H, CORNER = 61.0, 100.0 + UP, 5.0
@@ -154,7 +154,9 @@ for i, d in enumerate(('R65', 'R66', 'R67', 'R68', 'C47')): put(d, 39.4, 26.8 + 
 NO_MODEL = set()                             # parts allowed to have no 3D model (none now)
 
 LOGO = (30.5, 49.3, 0); LOGO_BOX = (23.7, 44.0, 37.3, 54.6)                       # SDSL logo: bottom side, centre
-LABELS = {'+3.3V': (1.5, 76.6), '+5V': (49.6, 76.6), '+12V': (2.0, 26.3), '+5V RF': (47.6, 26.3), 'GND': (28.2, 30.25)}       # GND sits directly under its jack
+# Jack labels (left, bottom of the text). Bjorn moved them under their jacks on Nov 27; each is centred on its jack's centre line
+# (x = 7.2 or 53.8), the upper pair on one base line and the lower pair on another, so left and right mirror each other.
+LABELS = {'+3.3V': (3.58, 78.7), '+5V': (51.55, 78.7), '+12V': (4.33, 26.3), '+5V RF': (49.3, 26.3), 'GND': (28.2, 30.25)}       # GND sits directly under its jack
 TITLE = (30.5, 5.6, 1.0)                    # "Squid Debugger V1 / By: Bjorn Bengtsson & Alex Jaber": bottom side, between the two lower mounting holes (moved there by Bjorn, Nov 27)
 TITLE_BOX = (TITLE[0] - 20.0, TITLE[1] - 2.2, TITLE[0] + 20.0, TITLE[1] + 2.2)
 FRAME = (11.2, 51.4, 19.0, 72.15)            # V0 silk frame around the UART parts (free tracks on the top overlay)
@@ -474,6 +476,20 @@ def pas(path):
          '  For I := 0 To Lst.Count - 1 Do Board.RemovePCBObject(Lst.Items[I]);',
          '  PCBServer.PostProcess; Board.ViewManager_FullUpdate;',
          "  ShowMessage('Artwork removed: ' + IntToStr(Lst.Count) + ' silk regions');",
+         '  Lst.Free;', 'End;', '',
+         'Procedure OldBoardOff;   { remove the free 3D body of the V0 board ("Debugging board v2.step", 100 mm long): in 2D its hatch stops short of the new top edge }',
+         'Var It : IPCB_BoardIterator; O : IPCB_ComponentBody; Lst : TInterfaceList; I : Integer; S : String;', 'Begin'] + get_board + [
+         "  S := ''; PCBServer.PreProcess;",
+         '  Lst := TInterfaceList.Create; It := Board.BoardIterator_Create;',
+         '  It.AddFilter_ObjectSet(MkSet(eComponentBodyObject)); It.AddFilter_LayerSet(AllLayers); It.AddFilter_Method(eProcessAll);',
+         '  O := It.FirstPCBObject;',
+         '  While O <> Nil Do Begin',
+         "    If Not O.InComponent Then Begin S := S + '[' + O.Identifier + '] '; If Pos('Debugging board', O.Identifier) > 0 Then Lst.Add(O); End;",
+         '    O := It.NextPCBObject;', '  End;',
+         '  Board.BoardIterator_Destroy(It);',
+         '  For I := 0 To Lst.Count - 1 Do Board.RemovePCBObject(Lst.Items[I]);',
+         '  PCBServer.PostProcess; Board.ViewManager_FullUpdate;',
+         "  ShowMessage('Free 3D bodies found: ' + S + '  removed: ' + IntToStr(Lst.Count));",
          '  Lst.Free;', 'End;', '',
          'Procedure WipeRound(X, Y, R : Double);   { remove bottom-silk artwork dots whose centre is inside a circle (round pads) }',
          'Var SI : IPCB_SpatialIterator; O : IPCB_Primitive; Lst : TInterfaceList; I : Integer; Rc : TCoordRect; Cx, Cy, Dx, Dy, Rr : Double;', 'Begin',
@@ -849,9 +865,36 @@ def pas(path):
           'End;']
     os.makedirs(os.path.dirname(path), exist_ok=True); open(path, 'w').write('\r\n'.join(L) + '\r\n')
 
+# ------------------------------------------------------------------ pinned designators
+# Bjorn places designators by hand for looks and symmetry. "python tools/pcb_place.py pin" (after DumpV1) records where
+# every designator is now; from then on PlaceV1 puts each one back exactly there. The solver above only places
+# designators that are not in the file (new parts). Delete an entry to let the solver place that one again.
+PINS_PATH = os.path.join(HERE, 'des_pins.json')
+SYM_JACKS = {'TP1': (1, 5.3, 4.8), 'TP4': (1, 5.3, 4.8), 'TP3': (-1, 5.3, 4.8), 'TP2': (-1, 5.3, 4.8)}   # jack labels: same offset from each jack centre, mirrored left / right
+def pin_from_dump():
+    import json
+    pins = {}
+    for line in open(DUMP_PATH, encoding='latin-1'):
+        f = line.rstrip('\r\n').split('|')
+        if f[0] == 'N' and len(f) >= 9 and f[1] in P:
+            l, b_, r, t_ = (float(v) * 0.0254 for v in f[5:9])
+            pins[f[1]] = [round((l + r) / 2, 3), round((b_ + t_) / 2, 3), int(round(float(f[3]))) % 360]
+    for d, (sx, dx, dy) in SYM_JACKS.items():
+        bx = box(d); pins[d] = [round((bx[0] + bx[2]) / 2 + sx * dx, 3), round((bx[1] + bx[3]) / 2 + dy, 3), 0]
+    json.dump(pins, open(PINS_PATH, 'w'), indent=0, sort_keys=True); print('pinned', len(pins), 'designators ->', PINS_PATH)
+def apply_pins():
+    import json
+    if not os.path.exists(PINS_PATH): return 0
+    pins = json.load(open(PINS_PATH)); n = 0
+    for d, (x, y, a_) in pins.items():
+        if d in P: DES[d] = (x, y, a_); n += 1
+    return n
+
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == 'pin': pin_from_dump()
     missing = sorted(set(GEO) - set(P) - {'G***'}); bad = check()
     failed = solve_designators()
+    print('designators pinned by hand positions:', apply_pins())
     svg(os.path.join(ROOT, 'design', 'V1_placement.svg')); pas(os.path.join(HERE, 'altium', 'place_v1.pas'))
     print(len(P), 'parts placed; not in table:', missing or 'none')
     print('too close (<%.2f mm):' % GAP, bad or 'none')

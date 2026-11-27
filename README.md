@@ -27,7 +27,7 @@ routing has not started.
 
 ## Schematic (V1)
 
-Sheets 1–5 as one PDF: [`screenshots/V1_schematic.pdf`](screenshots/V1_schematic.pdf) (Altium Smart PDF, Nov 27 2026).
+All six sheets as one PDF: [`screenshots/V1_schematic.pdf`](screenshots/V1_schematic.pdf) (Altium Smart PDF, Nov 27 2026).
 
 | Sheet | Contents |
 |---|---|
@@ -36,9 +36,25 @@ Sheets 1–5 as one PDF: [`screenshots/V1_schematic.pdf`](screenshots/V1_schemat
 | [3 DebugBoardPowerControl](screenshots/V1_sheet3_DebugBoardPowerControl.png) | Rail Enable (Pico GPIO + DIP force-on) and Rail Monitors (ADC dividers) |
 | [4 DebugBoard3V3Mux](screenshots/V1_sheet4_DebugBoard3V3Mux.png) | 3V3 Power Mux (PSU vs USB) |
 | [5 DebugBoard5VMux](screenshots/V1_sheet5_DebugBoard5VMux.png) | 5V Power Mux (PSU vs VBUS) |
-| 6 DebugBoardLimiters (`hardware/DebugBoardLimiters.SchDoc`) | PSU Current Limit: one 0.9 A eFuse (TPS259621) per bench rail |
+| [6 DebugBoardLimiters](screenshots/V1_sheet6_DebugBoardLimiters.png) | PSU Current Limit: one 0.9 A eFuse (TPS259621) per bench rail |
 
+**Sheet 1: main board**
 ![Sheet 1](screenshots/V1_sheet1_DebugBoard.png)
+
+**Sheet 2: bench inputs, AUX supply, 5V RF and 12V switches**
+![Sheet 2](screenshots/V1_sheet2_DebugBoardMuxes.png)
+
+**Sheet 3: rail enable and rail monitors**
+![Sheet 3](screenshots/V1_sheet3_DebugBoardPowerControl.png)
+
+**Sheet 4: 3V3 power mux**
+![Sheet 4](screenshots/V1_sheet4_DebugBoard3V3Mux.png)
+
+**Sheet 5: 5V power mux**
+![Sheet 5](screenshots/V1_sheet5_DebugBoard5VMux.png)
+
+**Sheet 6: PSU current limit**
+![Sheet 6](screenshots/V1_sheet6_DebugBoardLimiters.png)
 
 ## PCB (V1, placed, not routed)
 
@@ -49,6 +65,10 @@ Sheets 1–5 as one PDF: [`screenshots/V1_schematic.pdf`](screenshots/V1_schemat
 |---|---|
 | ![PCB top](screenshots/V1_pcb_top.jpg) | ![PCB bottom](screenshots/V1_pcb_bottom.jpg) |
 | ![PCB top, 3D](screenshots/V1_pcb_top_3d.jpg) | ![PCB bottom, 3D](screenshots/V1_pcb_bottom_3d.jpg) |
+| ![PCB 2D, top](screenshots/V1_pcb_2d_top.png) | ![PCB 2D, bottom](screenshots/V1_pcb_2d_bottom.png) |
+
+The last row is the 2D layer view (red = top copper, blue = bottom copper, thin lines = connections still to route).
+All six pictures are taken by `python tools/pcb_shots.py`; the sheet images by `python tools/sch_images.py`.
 
 ## Documentation
 

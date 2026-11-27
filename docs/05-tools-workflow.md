@@ -65,6 +65,11 @@ reference point; this moves them onto it, run it once after importing or updatin
 script stopped half-way and Altium refuses to save), `ViewFront` / `ViewBack` / `ViewBoth`.
 `python tools/doc_diagrams.py` redraws the SVG twins of the docs' Mermaid diagrams (`docs/img/`).
 
+**Pictures for the repo.** `python tools/pcb_shots.py` takes the six board pictures from the open Altium window
+(hands off the mouse for about a minute). For the schematic: File » Smart PDF » Current Project » Finish, then
+`python tools/sch_images.py`. **Hand-placed designators:** after moving text in Altium run `DumpV1`, then
+`python tools/pcb_place.py pin`, so the next `PlaceV1` keeps your positions.
+
 ## How sheet 1 is made
 
 `tools/gen_sheet1.py` redraws sheet 1 in the same wired style. Its input is `tools/templates/sheet1_source.SchDoc`,
