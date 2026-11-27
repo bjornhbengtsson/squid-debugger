@@ -534,8 +534,9 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
   top-right, and the title running up the board between the two headers. He supplied five pictures (front, back,
   both in 3D, and the 2D layer view), which replace the scripted ones. The old 2D bottom picture was removed.
 - `pcb_shots.py` saves the back view in portrait again (`BOTTOM_TURN = 0`).
-- **Not in the repo yet:** the board file on disk was last saved before this redraw, so `hardware/DebugBoard.PcbDoc`
-  still holds the landscape artwork until the board is saved and committed again.
+- The board file with this artwork was saved by Bjorn at 3:31 PM and committed right after the pictures.
+  The geometry dump and pinned designator positions in `tools/` were not refreshed from it: run `DumpV1` and
+  `python tools/pcb_place.py pin` before the next `PlaceV1`.
 
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
