@@ -12,7 +12,7 @@ It plugs into any SquidSat board through the **Squid Standard Debug Port** (J1, 
 A Raspberry Pi Pico (RP2040) is the brain: USB to the PC on one side, debug interfaces and power control on the other.
 
 **Status: V1 schematic captured and verified** (5 sheets, 139 parts). **V1 PCB: parts placed, not routed** (see [`design/V1_LAYOUT.md`](design/V1_LAYOUT.md));
-the PCB file is still the V0 layout.
+routing has not started.
 
 ## Repository layout
 
