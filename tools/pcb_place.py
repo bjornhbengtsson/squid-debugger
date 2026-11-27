@@ -153,12 +153,13 @@ put('U16', 44.5, 31.0, 90, 'B')
 for i, d in enumerate(('R65', 'R66', 'R67', 'R68', 'C47')): put(d, 39.4, 26.8 + 2.8 * i, 0, 'B')
 NO_MODEL = set()                             # parts allowed to have no 3D model (none now)
 
-LOGO = (30.5, 49.3, 0); LOGO_BOX = (23.7, 44.0, 37.3, 54.6)                       # SDSL logo: bottom side, centre
+# SDSL logo and title are hand-placed by Bjorn (Nov 27): PlaceV1 does not move them. These boxes only keep designators off them.
+LOGO = (14.25, 100.33, 270); LOGO_BOX = (9.16, 93.69, 19.34, 106.96)                # SDSL logo: bottom side, top-right as seen from the back
 # Jack labels (left, bottom of the text). Bjorn moved them under their jacks on Nov 27; each is centred on its jack's centre line
 # (x = 7.2 or 53.8), the upper pair on one base line and the lower pair on another, so left and right mirror each other.
 LABELS = {'+3.3V': (3.58, 78.7), '+5V': (51.55, 78.7), '+12V': (4.33, 26.3), '+5V RF': (49.3, 26.3), 'GND': (28.2, 30.25)}       # GND sits directly under its jack
 TITLE = (30.5, 5.6, 1.0)                    # "Squid Debugger V1 / By: Bjorn Bengtsson & Alex Jaber": bottom side, between the two lower mounting holes (moved there by Bjorn, Nov 27)
-TITLE_BOX = (TITLE[0] - 20.0, TITLE[1] - 2.2, TITLE[0] + 20.0, TITLE[1] + 2.2)
+TITLE_BOX = (28.7, 0.0, 33.1, 37.4)          # title text frame as placed by Bjorn: turned 270, running up the board between the two headers
 FRAME = (11.2, 51.4, 19.0, 72.15)            # V0 silk frame around the UART parts (free tracks on the top overlay)
 FRAME_LINES = [(FRAME[0] - 0.1, FRAME[1] - 0.1, FRAME[2] + 0.1, FRAME[1] + 0.1), (FRAME[0] - 0.1, FRAME[3] - 0.1, FRAME[2] + 0.1, FRAME[3] + 0.1),
                (FRAME[0] - 0.1, FRAME[1] - 0.1, FRAME[0] + 0.1, FRAME[3] + 0.1), (FRAME[2] - 0.1, FRAME[1] - 0.1, FRAME[2] + 0.1, FRAME[3] + 0.1)]
@@ -918,7 +919,7 @@ def pas(path):
          '  Clear(ePolyObject); Clear(eTrackObject); Clear(eArcObject); Clear(eViaObject); Clear(eFillObject); Clear(eRegionObject);']
     for d, (x, y, a, side) in sorted(P.items()):
         L.append(f"  Put('{d}', {x:.3f}, {y:.3f}, {a}, {'True' if side == 'B' else 'False'});")
-    L.append(f"  PutLogo({LOGO[0]}, {LOGO[1]}, {LOGO[2]}, True); Labels;")
+    L.append("  Labels;")                     # (the logo is hand-placed: no PutLogo)
     for _ in range(2):                       # second pass settles text whose box changed with its new size
         for d, (x, y, a) in sorted(DES.items()): L.append(f"  Des('{d}', {x:.3f}, {y:.3f}, {a});")
     L.append('  NoRooms;')

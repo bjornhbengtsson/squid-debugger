@@ -170,6 +170,9 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
   the windows out of the big pieces (PCBContourUtilities.ClipSetContour + rebuild with holes via NR.GeometricPolygon := GP; works,
   takes ~3 min; ArtCutTest does one piece). Run both after the user moves bottom text: DumpV1 -> pcb_place.py pin -> ArtWindows -> ArtCut. The title is
   hand-set (rotated 270): PlaceV1 no longer moves it. ArtOff would delete their artwork: never run it unasked.
+- Nov 27 late: the user redrew the bottom artwork in PORTRAIT (bigger mantis, ladybug top-left, SDSL logo top-right turned 270, title turned 270
+  between the headers). Logo and title are hand-placed: PlaceV1 no longer calls PutLogo or moves the title (LOGO_BOX / TITLE_BOX are
+  only keep-outs). pcb_shots.py BOTTOM_TURN = 0. The user supplies the repo pictures themself when they prefer their own shots.
 - Change log for presentation: design/V1_CHANGELOG.md (what/why/alternatives) — append every change.
 - Net scope Global (HierarchyMode=3) DONE. TPS2121RUXR = CMP-019-00076-1 (pins verified).
 - MPS panel is a slide-out + right-click menu: invisible to computer use → user creates workspace parts.

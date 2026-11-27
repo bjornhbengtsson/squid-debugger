@@ -535,8 +535,8 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
   both in 3D, and the 2D layer view), which replace the scripted ones. The old 2D bottom picture was removed.
 - `pcb_shots.py` saves the back view in portrait again (`BOTTOM_TURN = 0`).
 - The board file with this artwork was saved by Bjorn at 3:31 PM and committed right after the pictures.
-  The geometry dump and pinned designator positions in `tools/` were not refreshed from it: run `DumpV1` and
-  `python tools/pcb_place.py pin` before the next `PlaceV1`.
+- Re-read afterwards (`DumpV1`): no designator or label had moved, `pcb_check.py` errors = 0. The placement script no
+  longer moves the SDSL logo or the title (both hand-placed now); it only keeps designators off them.
 
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
