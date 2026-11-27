@@ -13,6 +13,10 @@ Status (Nov 27 2026): **components placed, silkscreen done, DRC run. Not routed.
 |---|---|
 | ![top](../screenshots/V1_pcb_top.jpg) | ![bottom](../screenshots/V1_pcb_bottom.jpg) |
 
+**One side at a time:** run `ViewFront` (File » Run Script) to hide everything on the bottom side, `ViewBack` to hide
+everything on the top side (then View » Flip Board), `ViewBoth` to show both again. They switch the copper, silk, paste,
+mask and "Top …" / "Bottom …" mechanical layers. Through-hole pads stay visible on both sides.
+
 Planning view with pads and designators, both sides: [`V1_placement.png`](V1_placement.png).
 
 ## 1. Constraints

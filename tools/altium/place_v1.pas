@@ -150,6 +150,45 @@ Begin
   ShowMessage('Outline stretched; free mechanical tracks/arcs moved: ' + IntToStr(N));
 End;
 
+Procedure SideView(ShowTop, ShowBottom : Boolean);   { show or hide everything that belongs to one side of the board }
+Var I : Integer; L : TLayer; MO : IPCB_MechanicalLayer; N : String;
+Begin
+  Board := PCBServer.GetPCBBoardByPath('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\DebugBoard.PcbDoc');
+  If Board = Nil Then Board := PCBServer.GetCurrentPCBBoard;
+  If Board = Nil Then Begin ShowMessage('Open DebugBoard.PcbDoc first'); Exit; End;
+  X0 := 11558.4886; Y0 := 3895.504;
+  Board.LayerIsDisplayed[eTopLayer] := ShowTop; Board.LayerIsDisplayed[eTopOverlay] := ShowTop;
+  Board.LayerIsDisplayed[eTopPaste] := ShowTop; Board.LayerIsDisplayed[eTopSolder] := ShowTop;
+  Board.LayerIsDisplayed[eBottomLayer] := ShowBottom; Board.LayerIsDisplayed[eBottomOverlay] := ShowBottom;
+  Board.LayerIsDisplayed[eBottomPaste] := ShowBottom; Board.LayerIsDisplayed[eBottomSolder] := ShowBottom;
+  For I := 1 To 32 Do Begin
+    L := LayerUtils.MechanicalLayer(I);
+    MO := Board.LayerStack_V7.LayerObject_V7[L];
+    If MO <> Nil Then If MO.MechanicalLayerEnabled Then Begin
+      N := UpperCase(MO.Name);
+      If Pos('TOP', N) = 1 Then Board.LayerIsDisplayed[L] := ShowTop;
+      If Pos('BOTTOM', N) = 1 Then Board.LayerIsDisplayed[L] := ShowBottom;
+    End;
+  End;
+  Board.ViewManager_UpdateLayerTabs; Board.ViewManager_FullUpdate;
+  Client.SendMessage('PCB:Zoom', 'Action=Redraw', 255, Client.CurrentView);
+End;
+
+Procedure ViewFront;   { front view: hide bottom-side parts, pads and silk }
+Begin
+  SideView(True, False);
+End;
+
+Procedure ViewBack;    { back view (then View > Flip Board): hide top-side parts, pads and silk }
+Begin
+  SideView(False, True);
+End;
+
+Procedure ViewBoth;
+Begin
+  SideView(True, True);
+End;
+
 Procedure NoRooms;   { the ECO adds a placement room off the board; nothing is meant to be confined to it }
 Var It : IPCB_BoardIterator; O : IPCB_Rule; Lst : TInterfaceList; I : Integer;
 Begin
