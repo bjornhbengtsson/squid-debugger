@@ -522,6 +522,13 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
   same offset its neighbours R41 / R43 / R44 use, with the new `DesFix` script, which moves only designators that differ
   from `tools/des_pins.json`. Board check: errors = 0.
 
+## 34. Final placement pictures (DONE Nov 27)
+- Bjorn confirmed the placement and silkscreen as final for now (not routed). All six board pictures were retaken with
+  `tools/pcb_shots.py`. The straight-down back view is now saved in landscape (`BOTTOM_TURN` in the script), because
+  the bottom artwork and title are drawn for landscape.
+- A small piece of artwork was also added on the top side by Bjorn (left of the UART frame).
+- Checked before the pictures: no designator had moved since the positions were pinned; `pcb_check.py` errors = 0.
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.
