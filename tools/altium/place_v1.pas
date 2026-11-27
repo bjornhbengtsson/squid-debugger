@@ -494,15 +494,15 @@ Begin
   Body3D('C35', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\GCM31CR71A226KE02K.stp', 0, 0, 0.0);
   Body3D('C37', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\GCM31CR71A226KE02K.stp', 0, 0, 0.0);
   Body3D('C38', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\GCM31CR71A226KE02K.stp', 0, 0, 0.0);
-  Body3D('D10', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54C,215.stp', 270, 0, 2.11);
-  Body3D('D11', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BZX84-C4V7,215.stp', 270, 270, 2.11);
-  Body3D('D12', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54A,215.stp', 270, 270, 2.11);
-  Body3D('D13', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BZX84-C4V7,215.stp', 270, 270, 2.11);
-  Body3D('D14', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54A,215.stp', 270, 270, 2.11);
-  Body3D('D15', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54A,215.stp', 270, 270, 2.11);
-  Body3D('D16', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54A,215.stp', 270, 270, 2.11);
-  Body3D('D8', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54C,215.stp', 270, 0, 2.11);
-  Body3D('D9', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54C,215.stp', 270, 0, 2.11);
+  Body3D('D10', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54C,215.stp', 90, 180, -1.16);
+  Body3D('D11', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BZX84-C4V7,215.stp', 90, 90, -1.16);
+  Body3D('D12', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54A,215.stp', 90, 90, -1.16);
+  Body3D('D13', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BZX84-C4V7,215.stp', 90, 90, -1.16);
+  Body3D('D14', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54A,215.stp', 90, 90, -1.16);
+  Body3D('D15', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54A,215.stp', 90, 90, -1.16);
+  Body3D('D16', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54A,215.stp', 90, 90, -1.16);
+  Body3D('D8', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54C,215.stp', 90, 180, -1.16);
+  Body3D('D9', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54C,215.stp', 90, 180, -1.16);
   Body3D('SW1', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\219-4MST.stp', 90, 0, 0.25);
   Body3D('U10', 'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\LM4040BIM3-2.5_NOPB.stp', 0, 0, 0.0);
   Clear(ePolyObject); Clear(eTrackObject); Clear(eArcObject); Clear(eViaObject); Clear(eFillObject); Clear(eRegionObject);
@@ -636,7 +636,7 @@ Begin
   Put('U1', 30.500, 83.650, 0, False);
   Put('U10', 55.800, 53.100, 0, False);
   Put('U13', 16.625, 104.000, 0, False);
-  Put('U2', 20.800, 20.612, 90, False);
+  Put('U2', 20.800, 20.613, 90, False);
   Put('U3', 10.500, 45.300, 0, False);
   Put('U4', 49.700, 102.977, 270, False);
   Put('U5', 51.100, 61.500, 0, False);
@@ -671,7 +671,7 @@ Begin
   Des('C37', 47.300, 22.789, 0);
   Des('C38', 56.700, 18.411, 0);
   Des('C39', 6.850, 25.250, 0);
-  Des('C4', 45.000, 108.522, 0);
+  Des('C4', 45.000, 108.521, 0);
   Des('C40', 4.000, 22.808, 0);
   Des('C41', 17.364, 20.600, 0);
   Des('C42', 25.000, 85.150, 0);
@@ -732,7 +732,7 @@ Begin
   Des('R27', 54.100, 55.394, 0);
   Des('R28', 57.247, 60.200, 0);
   Des('R29', 57.247, 63.100, 0);
-  Des('R3', 57.800, 97.360, 0);
+  Des('R3', 57.800, 97.359, 0);
   Des('R30', 57.247, 66.000, 0);
   Des('R31', 52.850, 67.906, 0);
   Des('R32', 50.547, 14.700, 0);
@@ -754,7 +754,7 @@ Begin
   Des('R47', 35.147, 80.200, 0);
   Des('R48', 28.147, 83.300, 0);
   Des('R49', 35.147, 83.300, 0);
-  Des('R5', 45.000, 98.060, 0);
+  Des('R5', 45.000, 98.059, 0);
   Des('R50', 28.147, 93.200, 0);
   Des('R51', 28.147, 96.100, 0);
   Des('R52', 28.147, 99.000, 0);
@@ -810,7 +810,7 @@ Begin
   Des('C37', 47.300, 22.789, 0);
   Des('C38', 56.700, 18.411, 0);
   Des('C39', 6.850, 25.250, 0);
-  Des('C4', 45.000, 108.522, 0);
+  Des('C4', 45.000, 108.521, 0);
   Des('C40', 4.000, 22.808, 0);
   Des('C41', 17.364, 20.600, 0);
   Des('C42', 25.000, 85.150, 0);
@@ -871,7 +871,7 @@ Begin
   Des('R27', 54.100, 55.394, 0);
   Des('R28', 57.247, 60.200, 0);
   Des('R29', 57.247, 63.100, 0);
-  Des('R3', 57.800, 97.360, 0);
+  Des('R3', 57.800, 97.359, 0);
   Des('R30', 57.247, 66.000, 0);
   Des('R31', 52.850, 67.906, 0);
   Des('R32', 50.547, 14.700, 0);
@@ -893,7 +893,7 @@ Begin
   Des('R47', 35.147, 80.200, 0);
   Des('R48', 28.147, 83.300, 0);
   Des('R49', 35.147, 83.300, 0);
-  Des('R5', 45.000, 98.060, 0);
+  Des('R5', 45.000, 98.059, 0);
   Des('R50', 28.147, 93.200, 0);
   Des('R51', 28.147, 96.100, 0);
   Des('R52', 28.147, 99.000, 0);
@@ -1111,8 +1111,8 @@ Begin
   Wipe(eRegionObject, eBottomOverlay, 25.12, 86.17, 26.37, 87.82);
   Wipe(eRegionObject, eBottomOverlay, 30.62, 86.17, 31.88, 87.82);
   Wipe(eRegionObject, eBottomOverlay, 32.12, 86.17, 33.37, 87.82);
-  Wipe(eRegionObject, eBottomOverlay, 23.62, 89.08, 24.88, 90.73);
-  Wipe(eRegionObject, eBottomOverlay, 25.12, 89.08, 26.37, 90.73);
+  Wipe(eRegionObject, eBottomOverlay, 23.62, 89.08, 24.88, 90.72);
+  Wipe(eRegionObject, eBottomOverlay, 25.12, 89.08, 26.37, 90.72);
   Wipe(eRegionObject, eBottomOverlay, 23.15, 91.95, 24.95, 94.45);
   Wipe(eRegionObject, eBottomOverlay, 25.05, 91.95, 26.85, 94.45);
   Wipe(eRegionObject, eBottomOverlay, 23.15, 94.85, 24.95, 97.35);
@@ -1146,7 +1146,7 @@ Begin
   Wipe(eRegionObject, eBottomOverlay, 55.87, 59.42, 58.63, 60.97);
   Wipe(eRegionObject, eBottomOverlay, 14.57, 14.28, 16.63, 15.83);
   Wipe(eRegionObject, eBottomOverlay, 23.62, 84.37, 26.38, 85.92);
-  Wipe(eRegionObject, eBottomOverlay, 26.77, 82.53, 29.53, 84.08);
+  Wipe(eRegionObject, eBottomOverlay, 26.77, 82.52, 29.53, 84.08);
   Wipe(eRegionObject, eBottomOverlay, 15.27, 46.12, 18.03, 47.67);
   Wipe(eRegionObject, eBottomOverlay, 55.87, 62.32, 58.63, 63.87);
   Wipe(eRegionObject, eBottomOverlay, 10.62, 18.07, 13.38, 19.62);
@@ -1178,7 +1178,7 @@ Begin
   Wipe(eRegionObject, eBottomOverlay, 23.57, 14.28, 25.63, 15.83);
   Wipe(eRegionObject, eBottomOverlay, 2.72, 18.73, 5.48, 20.28);
   Wipe(eRegionObject, eBottomOverlay, 30.62, 84.37, 33.38, 85.92);
-  Wipe(eRegionObject, eBottomOverlay, 33.77, 82.53, 36.53, 84.08);
+  Wipe(eRegionObject, eBottomOverlay, 33.77, 82.52, 36.53, 84.08);
   Wipe(eRegionObject, eBottomOverlay, 15.27, 40.32, 18.03, 41.87);
   Wipe(eRegionObject, eBottomOverlay, 2.72, 12.02, 5.48, 13.57);
   Wipe(eRegionObject, eBottomOverlay, 53.92, 18.07, 56.68, 19.62);

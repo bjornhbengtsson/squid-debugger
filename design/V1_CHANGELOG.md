@@ -389,10 +389,11 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
     file, `ArtV1`). Earlier passes had cut large squares out of it. Now only small windows are opened: under
     bottom-side pads, round through-hole pads, designators and the title text.
   - 3D models corrected. SW1 and the Nexperia SOT-23 models (D8-D16) are drawn with Y as height, so they are turned
-    about X (SW1 +90, SOT-23 270) and lifted to sit on the board. U10's TI model was already flat. Each model is
+    about X by 90 degrees and moved in Z so the legs sit on the pads (the SOT-23 model sits 1.16 mm above its own origin). U10's TI model was already flat. Each model is
     centred on its part's pads with the rotation applied first.
 - **Why the first attempt was wrong:** the models were centred before being turned, and Altium does not update a
-  body's outline when the model is turned afterwards. The lead side of each SOT-23 was checked by eye in the 3D view.
+  body's outline when the model is turned afterwards. A second attempt had the SOT-23s legs-up (turned 270 instead of 90);
+  the final state was checked in a tilted 3D view from both sides: legs down, on the pads.
 - **Verified:** `pcb_check.py` errors = 0; DRC = 320 un-routed nets + 16 net antennae + 8 SOIC mask slivers.
 - **Alternatives:** shrink the GND label instead of lengthening the board; regenerate the artwork from a picture
   (the V0 regions are exact, so they were copied instead).

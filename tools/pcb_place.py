@@ -147,9 +147,9 @@ STEP_DIR = os.path.join(os.path.dirname(PCB_PATH), 'Libraries', 'SquidDebugger_V
 STEP = {'SW1': ('219-4MST.stp', 90, 0, 0.25),                       # height is the model's Y axis; feet at y = -0.25
         'U10': ('LM4040BIM3-2.5_NOPB.stp', 0, 0, 0.0)}              # TI SOT-23: already flat, leads along X
 STEP.update({d: ('GCM31CR71A226KE02K.stp', 0, 0, 0.0) for d in ('C31', 'C32', 'C34', 'C35', 'C37', 'C38')})
-STEP.update({d: ('BAT54C,215.stp', 270, 0, 2.11) for d in ('D8', 'D9', 'D10')})           # Nexperia SOT-23: height along Y
-STEP.update({d: ('BAT54A,215.stp', 270, 270, 2.11) for d in ('D12', 'D14', 'D15', 'D16')})  # footprint has pads 1, 2 on +X
-STEP.update({d: ('BZX84-C4V7,215.stp', 270, 270, 2.11) for d in ('D11', 'D13')})
+STEP.update({d: ('BAT54C,215.stp', 90, 180, -1.16) for d in ('D8', 'D9', 'D10')})           # Nexperia SOT-23: height along Y
+STEP.update({d: ('BAT54A,215.stp', 90, 90, -1.16) for d in ('D12', 'D14', 'D15', 'D16')})  # footprint has pads 1, 2 on +X
+STEP.update({d: ('BZX84-C4V7,215.stp', 90, 90, -1.16) for d in ('D11', 'D13')})
 THT = {d for d in GEO if any(p[1] == 'M' for p in GEO[d]['pads'])}
 ROUND = lambda d: d.startswith(('TP', 'MH'))
 
