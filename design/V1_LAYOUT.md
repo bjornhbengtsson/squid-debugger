@@ -153,10 +153,9 @@ holes). The UART group stayed inside its V0 silk frame.
 - None is on a pad, hole or via, under the Pico, outside the board, or on another designator. `pcb_check.py` verifies this
   from Altium's own text boxes.
 - Jack labels (+3.3V, +5V, +12V, +5V RF, GND) are 1.5 mm and sit below or beside their jack. "TX RX" is 1.3 mm inside its frame.
-- V0's praying-mantis artwork on the bottom side is the original, copied back from the V0 board file (`ArtV1`).
-  Its halftone dots are removed only directly under bottom-side pads, round through-hole pads, designators and the
-  title text. The title now reads "Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber" and sits above the SWD
-  resistors, because bottom-side parts occupy its V0 position. The Clarke quote is removed.
+- The bottom side has no artwork at present: V0's praying-mantis image was removed on Nov 27 (`ArtOff`; `ArtV1` can put it
+  back). New artwork comes later. The title reads "Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber" and sits above
+  the SWD resistors; the SDSL logo is kept. The Clarke quote is removed.
 
 ## 6. DRC (Altium, Nov 27, unrouted board)
 

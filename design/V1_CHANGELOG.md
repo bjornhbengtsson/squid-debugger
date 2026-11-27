@@ -456,6 +456,15 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
 - **Verified:** `verify_gen.py` 115/115, errors = 0; `verify_sheet1.py` 46/46; `pcb_check.py` errors = 0 (161 parts,
   161 designators); DRC = 369 un-routed + 16 net antennae + 8 SOIC mask slivers, nothing else.
 
+## 30. Praying-mantis artwork removed from the bottom silkscreen (DONE Nov 27)
+- **What:** all 2864 free silk regions on the bottom overlay are deleted (`ArtOff` script). The title text
+  ("Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber") and the SDSL logo stay.
+- **Why:** Bjorn asked for it; new artwork (mantis + ladybug halftone) will replace it once everything else is done.
+- **Undo:** `ArtV1` copies the V0 artwork back from `_backup/DebugBoard_V0.PcbDoc`, then `PlaceV1` re-opens the
+  windows under pads and designators.
+- **Alternatives:** keep the V0 artwork until the new one is ready (declined: Bjorn does not want the current image).
+- **Images:** `screenshots/V1_pcb_bottom.jpg` still shows the old artwork; Bjorn will take new images.
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.

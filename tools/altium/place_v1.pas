@@ -185,6 +185,25 @@ Begin
   ShowMessage('V0 artwork restored: ' + IntToStr(N) + ' silk regions');
 End;
 
+Procedure ArtOff;   { remove the bottom-side artwork: every free silk region on Bottom Overlay (title text and logo stay) }
+Var It : IPCB_BoardIterator; O : IPCB_Primitive; Lst : TInterfaceList; I : Integer;
+Begin
+  Board := PCBServer.GetPCBBoardByPath('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\DebugBoard.PcbDoc');
+  If Board = Nil Then Board := PCBServer.GetCurrentPCBBoard;
+  If Board = Nil Then Begin ShowMessage('Open DebugBoard.PcbDoc first'); Exit; End;
+  X0 := 11558.4886; Y0 := 3895.504;
+  PCBServer.PreProcess;
+  Lst := TInterfaceList.Create; It := Board.BoardIterator_Create;
+  It.AddFilter_ObjectSet(MkSet(eRegionObject)); It.AddFilter_LayerSet(MkSet(eBottomOverlay)); It.AddFilter_Method(eProcessAll);
+  O := It.FirstPCBObject;
+  While O <> Nil Do Begin If Not O.InComponent Then Lst.Add(O); O := It.NextPCBObject; End;
+  Board.BoardIterator_Destroy(It);
+  For I := 0 To Lst.Count - 1 Do Board.RemovePCBObject(Lst.Items[I]);
+  PCBServer.PostProcess; Board.ViewManager_FullUpdate;
+  ShowMessage('Artwork removed: ' + IntToStr(Lst.Count) + ' silk regions');
+  Lst.Free;
+End;
+
 Procedure WipeRound(X, Y, R : Double);   { remove bottom-silk artwork dots whose centre is inside a circle (round pads) }
 Var SI : IPCB_SpatialIterator; O : IPCB_Primitive; Lst : TInterfaceList; I : Integer; Rc : TCoordRect; Cx, Cy, Dx, Dy, Rr : Double;
 Begin

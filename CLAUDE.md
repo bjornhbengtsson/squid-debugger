@@ -148,6 +148,8 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
 - Docs: docs/07-bench-procedure.md (plug order, live stack, CAN termination, tests). Mermaid diagrams have SVG twins in
   docs/img made by tools/doc_diagrams.py (keep both in sync). Silkscreen artwork redo (mantis + ladybug from design/art,
   tools/silk_art.py) is deferred by the user until everything else is done; source photos are NOT committed.
+- Nov 27 (changelog #30): user had the V0 mantis artwork REMOVED from the bottom silk (ArtOff script; ArtV1 restores it).
+  Do not put it back unasked. User takes the PCB images for the repo themself (screenshots/V1_pcb_*.jpg).
 - Change log for presentation: design/V1_CHANGELOG.md (what/why/alternatives) — append every change.
 - Net scope Global (HierarchyMode=3) DONE. TPS2121RUXR = CMP-019-00076-1 (pins verified).
 - MPS panel is a slide-out + right-click menu: invisible to computer use → user creates workspace parts.
