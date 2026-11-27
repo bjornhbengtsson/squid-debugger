@@ -156,8 +156,8 @@ holes). The UART group stayed inside its V0 silk frame.
   from Altium's own text boxes.
 - Jack labels (+3.3V, +5V, +12V, +5V RF, GND) are 1.5 mm and sit below or beside their jack. "TX RX" is 1.3 mm inside its frame.
 - The bottom side has no artwork at present: V0's praying-mantis image was removed on Nov 27 (`ArtOff`; `ArtV1` can put it
-  back). New artwork comes later. The title reads "Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber" and sits above
-  the SWD resistors; the SDSL logo is kept. The Clarke quote is removed.
+  back). New artwork comes later. The title reads "Squid Debugger V1 / By: Bjorn Bengtsson & Alex Jaber" and sits at the
+  bottom edge between the two lower mounting holes (`TITLE` in `pcb_place.py`); the SDSL logo is kept. The Clarke quote is removed.
 
 ## 6. DRC (Altium, Nov 27, unrouted board)
 

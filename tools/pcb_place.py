@@ -155,7 +155,7 @@ NO_MODEL = set()                             # parts allowed to have no 3D model
 
 LOGO = (30.5, 49.3, 0); LOGO_BOX = (23.7, 44.0, 37.3, 54.6)                       # SDSL logo: bottom side, centre
 LABELS = {'+3.3V': (1.5, 76.6), '+5V': (49.6, 76.6), '+12V': (2.0, 26.3), '+5V RF': (47.6, 26.3), 'GND': (28.2, 30.25)}       # GND sits directly under its jack
-TITLE = (30.5, 22.6, 1.0)                   # "Squid Debugger V1 / By: Bjorn Bengtsson and Alex Jaber", bottom side
+TITLE = (30.5, 5.6, 1.0)                    # "Squid Debugger V1 / By: Bjorn Bengtsson & Alex Jaber": bottom side, between the two lower mounting holes (moved there by Bjorn, Nov 27)
 TITLE_BOX = (TITLE[0] - 20.0, TITLE[1] - 2.2, TITLE[0] + 20.0, TITLE[1] + 2.2)
 FRAME = (11.2, 51.4, 19.0, 72.15)            # V0 silk frame around the UART parts (free tracks on the top overlay)
 FRAME_LINES = [(FRAME[0] - 0.1, FRAME[1] - 0.1, FRAME[2] + 0.1, FRAME[1] + 0.1), (FRAME[0] - 0.1, FRAME[3] - 0.1, FRAME[2] + 0.1, FRAME[3] + 0.1),

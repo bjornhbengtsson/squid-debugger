@@ -152,6 +152,9 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
   Do not put it back unasked. User takes the PCB images for the repo themself (screenshots/V1_pcb_*.jpg).
 - eFuse 3D model (changelog #31): hardware/Libraries/SquidDebugger_V1/3D/TPS259621DDAR_simplified.step is OUR OWN box model,
   written by tools/make_efuse_step.py (plain AP214 boxes with colours; Altium reads it fine). Verified tilted, bottom side.
+- PlaceV1 re-positions the title, labels and every designator from the tables in pcb_place.py: a hand move in Altium is
+  undone on the next run. Before running PlaceV1 after the user has worked in Altium, compare their view with the tables
+  (title is now at TITLE = (30.5, 5.6), text "By: Bjorn Bengtsson & Alex Jaber", set by the user Nov 27).
 - Change log for presentation: design/V1_CHANGELOG.md (what/why/alternatives) — append every change.
 - Net scope Global (HierarchyMode=3) DONE. TPS2121RUXR = CMP-019-00076-1 (pins verified).
 - MPS panel is a slide-out + right-click menu: invisible to computer use → user creates workspace parts.

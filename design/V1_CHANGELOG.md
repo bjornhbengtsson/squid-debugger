@@ -477,6 +477,9 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
 - **Images:** Bjorn's four views replace the board pictures: `screenshots/V1_pcb_top.jpg`, `V1_pcb_bottom.jpg`,
   `V1_pcb_top_3d.jpg`, `V1_pcb_bottom_3d.jpg`. They were taken just before the eFuse models were added, so the
   bottom views show the eFuse pads without bodies.
+- **Title text:** Bjorn moved the title to the bottom edge, between the two lower mounting holes, and changed "and"
+  to "&". The placement script had the old position and moved it back on its next run; `TITLE` in `pcb_place.py`
+  now holds Bjorn's position (30.5, 5.6 mm), so the script keeps it there.
 
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
