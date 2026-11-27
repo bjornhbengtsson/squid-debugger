@@ -121,6 +121,10 @@ def write_cfb(path, streams):
 def stream_from(recs):
     # HEADER 'Weight' = number of records after the header; Altium reads exactly that many
     if recs and recs[0].get('HEADER'): recs[0].set('Weight', len(recs) - 1)
+    # A footprint model pinned to a vendor-converter temp path is never found ("Footprint Not Found" in the ECO).
+    # Dropping the path makes Altium search the project libraries (SquidDebugger_V1.IntLib) by name instead.
+    for r in recs:
+        if r.get('RECORD') == '45' and 'altium-converter' in (r.get('MODELDATAFILE0') or ''): r.delete('MODELDATAFILE0')
     out = b''
     for r in recs:
         b = r.bytes(); out += struct.pack('<I', len(b)) + b

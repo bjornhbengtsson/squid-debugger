@@ -113,6 +113,18 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
   Gotcha: Altium joins net label<->label and port<->port only; never use one name as both on a sheet.
   Hand edits in Altium are fine now, but regenerating would overwrite them.
   Sheet-1 Pico ports added by tools/patch_sheet1_pico.py. SchDoc header Weight must = record count.
+- PCB (Nov 27): design/V1_LAYOUT.md = options, weights, stack-up (SIG/GND/GND/SIG, 7628, NOT yet in Layer Stack
+  Manager), placement, review. hardware/DebugBoard.PcbDoc has all 139 V1 parts PLACED, NOT ROUTED (waiting for user OK).
+  Placement table = tools/pcb_place.py -> tools/altium/place_v1.pas (File > Run Script > SquidPcbTools.PrjScr > PlaceV1,
+  StackV1, DumpV1). Loop: DumpV1 (writes real pad/text geometry to tools/altium/pcb_dump.txt) -> python tools/pcb_place.py
+  -> PlaceV1 -> DumpV1 -> save -> python tools/pcb_check.py (expect errors = 0) -> Tools > Design Rule Check (Alt+R)
+  -> python tools/drc_summary.py. State Nov 27: placement + 139 designators + stack-up done, DRC = 320 unrouted +
+  56 footprint-internal (TPS2121 0.2 mm vias, SOIC mask slivers). J1 pin 1 is on the RIGHT. User said: do not route yet.
+  Script gotchas: BoundingRectangleNoNameComment includes silk; artwork texts on Bottom Overlay are text frames
+  (MultilineTextWidth/Height); RemovePCBObject silently failed on V0's free "TX RX" frame tracks; File > Save Project
+  only shows when a non-PCB document (e.g. the DRC report) is active. To see the PCB: File > Smart PDF (current document) then render the PDF with PyMuPDF,
+  because the PCB view does not show in computer-use screenshots. In Smart PDF / ECO dialogs mouse clicks are flaky:
+  use Alt+N / Escape / Return, and Finish needs two clicks. Altium ignores Text.XLocation in scripts: use MoveByXY.
 - Change log for presentation: design/V1_CHANGELOG.md (what/why/alternatives) — append every change.
 - Net scope Global (HierarchyMode=3) DONE. TPS2121RUXR = CMP-019-00076-1 (pins verified).
 - MPS panel is a slide-out + right-click menu: invisible to computer use → user creates workspace parts.

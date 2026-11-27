@@ -312,6 +312,48 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
   - one big wired drawing with no ports between blocks (it'd be a tangle across the Pico's 40 pins);
   - keep CAN_OSC as labels (it'd be simpler, but you couldn't follow the line).
 
+## 23. PCB: layout chosen, V1 parts imported and placed (DONE Nov 27, not routed)
+- **What:**
+  - Three layout options were sketched and scored (`design/V1_LAYOUT.md`). **Option A, "V0 classic, two-sided"** won
+    (400 / 500): same 61 x 100 mm outline, same four M3 holes, Pico / jacks / J1 where V0 had them.
+  - Stack-up confirmed as SIG / GND / GND / SIG, 1.6 mm, standard 7628 build. The numbers are in `V1_LAYOUT.md` section 4.
+    **They are not yet entered in the Layer Stack Manager.**
+  - V1 schematic imported into `hardware/DebugBoard.PcbDoc` (ECO): 139 components, V0 routing and pours removed.
+  - All 139 parts placed by script (`tools/pcb_place.py` -> `tools/altium/place_v1.pas`). The four power switches sit
+    beside their jacks. Dividers, rail enables and ADC dividers are on the bottom side.
+  - The four corner jacks moved 2.7 mm outward so a TVS fits beside each. The GND jack moved up 5.4 mm to make room for
+    the DIP switch.
+- **Fixed on the way:**
+  - Q1-Q4 (2N7002) pointed at a footprint path from a vendor converter (`C:\altium-converter\...`), so the ECO
+    reported "Footprint Not Found". The path was removed from sheet 3 (and `tools/schgen.py` now strips it), and
+    `SOT103P240X110-3N.PcbLib` was added to the project. The compiled IntLib is missing that footprint.
+  - L1's footprint origin is about 1.9 m from its pads. The script places it by bounding box.
+- **Verified:** `python tools/pcb_check.py` -> 139 / 139 on the board, all at the table position. Sheet 3 nets unchanged.
+- **Not verified:** DRC has not been run. Component rotations for the TPS2121s are not yet tuned to their pinout.
+- **Alternatives:** B "power spine" (jacks in one column, 390 / 500); C "wide single-sided" (375 / 500, breaks the outline).
+
+## 24. PCB placement redone from real geometry; silkscreen, stack-up and DRC (DONE Nov 27, not routed)
+- **What:**
+  - The placement now uses Altium's real footprint boxes and pads (`DumpV1` -> `tools/altium/pcb_dump.txt`), not
+    estimated sizes. Every part keeps >= 0.25 mm to its neighbours.
+  - **Centre rearranged:** U6 and the GND jack sit side by side under the Pico, SW1 is raised, the CAN transceiver is
+    left of SW1. The real SW1, U6 and jack do not fit in one column; in entry 23 the jack pad overlapped SW1's pads.
+  - **TPS2121 blocks** are arranged around the IC's pinout (bypass caps at the IN pins, output caps at the OUT pins).
+  - **Designators:** all 139 are 0.8 mm / 0.15 mm stroke, beside their part, off pads, holes and vias, inside the board.
+  - **Layer stack** entered: 0.035 / 0.21 / 0.0175 / 1.065 / 0.0175 / 0.21 / 0.035 mm (SIG / GND / GND / SIG, 1.59 mm).
+  - V0 bottom-side artwork kept; halftone dots removed only under bottom pads and text. Title text now says V1.
+- **DRC:** 376 violations = 320 un-routed nets (expected) + 56 inside vendor footprints (16 TPS2121 vias x 3 rules,
+  8 SOIC mask slivers). Clearance, shorts, component clearance and silkscreen rules are clean.
+- **Found by DRC and fixed:** 6 shorts (bottom resistors on TPS2121 through vias; footprint vias without nets),
+  parts on the P3/P4 pin labels, U6 too close to a Pico pad, an off-board placement room.
+- **J1 pin 1 is on the right**, so +3V3_TGT and +12V_TGT must cross on the bottom layer under SW1. The layout
+  keeps that channel free.
+- **Verified:** `pcb_check.py` errors = 0 (positions, spacing, designators, stack read back from the saved file).
+- **Alternatives:**
+  - keep the GND jack on the centre line and move U6 to the bottom side (breaks the low-profile bottom rule);
+  - 0.6 mm designators (fits tighter, but below the usual 0.8 mm legibility minimum);
+  - delete the V0 bottom artwork entirely (cleaner silk, loses the V0 look).
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.

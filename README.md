@@ -11,7 +11,7 @@ It plugs into any SquidSat board through the **Squid Standard Debug Port** (J1, 
 
 A Raspberry Pi Pico (RP2040) is the brain: USB to the PC on one side, debug interfaces and power control on the other.
 
-**Status: V1 schematic captured and verified** (5 sheets, 139 parts). PCB layout for V1 is not started yet;
+**Status: V1 schematic captured and verified** (5 sheets, 139 parts). **V1 PCB: parts placed, not routed** (see [`design/V1_LAYOUT.md`](design/V1_LAYOUT.md));
 the PCB file is still the V0 layout.
 
 ## Repository layout
@@ -20,7 +20,7 @@ the PCB file is still the V0 layout.
 |---|---|
 | [`hardware/`](hardware) | The Altium Designer project. Open `Debugging Board V1.PrjPcb`. Sheets 1–5, PCB (V0 layout), BOM doc, OutJobs, libraries. |
 | [`docs/`](docs) | **Start here.** How the board works and why it's designed this way. |
-| [`design/`](design) | Design record: `V1_PLAN.md` (all math + datasheet review), `V1_CHANGELOG.md` (every change with reasons and alternatives), `V1_PARTS_LINKS.md`, block diagrams. |
+| [`design/`](design) | Design record: `V1_PLAN.md` (all math + datasheet review), `V1_CHANGELOG.md` (every change with reasons and alternatives), `V1_PARTS_LINKS.md`, `V1_LAYOUT.md` (PCB layout choice, stack-up, placement, DRC), block diagrams. |
 | [`tools/`](tools) | Python tools that read, check and generate the Altium files (no Altium needed to run them). |
 | [`reference/`](reference) | Team notes, the SquidSat SSC26 paper, the BOM spreadsheet, and links to all datasheets. |
 | [`screenshots/`](screenshots) | V1 schematic images and PDF, V0 board and schematic captures, OBC Rev2 references. |
