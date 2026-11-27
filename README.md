@@ -61,24 +61,19 @@ All six sheets as one PDF: [`screenshots/V1_schematic.pdf`](screenshots/V1_schem
 61 × 110 mm, 4 layers. Details in [`design/V1_LAYOUT.md`](design/V1_LAYOUT.md); plan view with pads and designators:
 [`screenshots/V1_pcb_placement_plan.png`](screenshots/V1_pcb_placement_plan.png).
 
-**Back (bottom side, shown in landscape: the artwork and title are drawn that way)**
-
-![PCB bottom](screenshots/V1_pcb_bottom.jpg)
-
-| Front (top side) | Front, 3D |
+| Front (top side) | Back (bottom side, flipped view) |
 |---|---|
-| ![PCB top](screenshots/V1_pcb_top.jpg) | ![PCB top, 3D](screenshots/V1_pcb_top_3d.jpg) |
+| ![PCB top](screenshots/V1_pcb_top.jpg) | ![PCB bottom](screenshots/V1_pcb_bottom.jpg) |
 
-**Back, 3D**
-
-![PCB bottom, 3D](screenshots/V1_pcb_bottom_3d.jpg)
-
-| 2D view, top | 2D view, bottom (flipped) |
+| Front, 3D | Back, 3D |
 |---|---|
-| ![PCB 2D, top](screenshots/V1_pcb_2d_top.png) | ![PCB 2D, bottom](screenshots/V1_pcb_2d_bottom.png) |
+| ![PCB top, 3D](screenshots/V1_pcb_top_3d.jpg) | ![PCB bottom, 3D](screenshots/V1_pcb_bottom_3d.jpg) |
 
-The 2D pictures show the layers that were switched on in Altium when they were taken (silkscreen and pads; thin lines
-are connections still to route). All six pictures are taken by `python tools/pcb_shots.py`; the sheet images by
+**2D layer view** (red = top copper, blue = bottom copper, yellow = silkscreen, thin lines = connections still to route):
+
+![PCB 2D](screenshots/V1_pcb_2d_top.png)
+
+`python tools/pcb_shots.py` can retake these from the open Altium window; the sheet images come from
 `python tools/sch_images.py`.
 
 ## Documentation

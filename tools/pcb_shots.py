@@ -13,7 +13,7 @@ Do not touch the mouse or keyboard while it runs (about 40 s; it stops by itself
 with a Shift + right-button drag. After Fit Board the view is zoomed out two wheel notches (Ctrl + wheel), so the floating toolbar at the top of
 the view and the layer tabs at the bottom never cover the board; each picture is then cropped to the board plus 12 pixels.
 
-Pictures: V1_pcb_top.jpg, V1_pcb_bottom.jpg (straight down, 3D; the bottom one is saved in landscape), V1_pcb_top_3d.jpg, V1_pcb_bottom_3d.jpg (tilted),
+Pictures: V1_pcb_top.jpg, V1_pcb_bottom.jpg (straight down, 3D), V1_pcb_top_3d.jpg, V1_pcb_bottom_3d.jpg (tilted),
 V1_pcb_2d_top.png, V1_pcb_2d_bottom.png (2D layer view).
 """
 import ctypes, os, sys, time
@@ -26,7 +26,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'screenshot
 # board 1 degree about the screen's horizontal (vertical drag) or vertical (horizontal drag) axis. To turn the board
 # in its own plane: stand it on edge (90 degrees), turn it, lean it back down. Result: turned ~58 degrees, seen ~57 degrees off vertical.
 TILT = [(0, -615), (-395, 0), (0, 225)]
-BOTTOM_TURN = -90                 # the straight-down back view is saved turned a quarter clockwise: the bottom artwork and title are drawn for landscape
+BOTTOM_TURN = 0                   # degrees to turn the straight-down back view when saving (-90 = landscape); the artwork is portrait again
 MARGIN = 12                    # crop margin around the board in pixels: tight, so the floating toolbar above the board stays out of the picture
 u = ctypes.windll.user32
 try: ctypes.windll.shcore.SetProcessDpiAwareness(2)

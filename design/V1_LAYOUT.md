@@ -9,19 +9,12 @@ Status (Nov 27 2026): **components placed, silkscreen done, DRC run. Not routed.
 - `DumpV1` writes the real pad and text geometry to `tools/altium/pcb_dump.txt`. `python tools/pcb_check.py`
   checks it: positions, spacing, designators, stack. `python tools/drc_summary.py` summarises Altium's DRC report.
 
-| Top | Top, 3D |
+| Top | Bottom (flipped view) |
 |---|---|
-| ![top](../screenshots/V1_pcb_top.jpg) | ![top 3D](../screenshots/V1_pcb_top_3d.jpg) |
+| ![top](../screenshots/V1_pcb_top.jpg) | ![bottom](../screenshots/V1_pcb_bottom.jpg) |
+| ![top 3D](../screenshots/V1_pcb_top_3d.jpg) | ![bottom 3D](../screenshots/V1_pcb_bottom_3d.jpg) |
 
-Bottom (landscape, as the artwork is drawn):
-
-![bottom](../screenshots/V1_pcb_bottom.jpg)
-
-![bottom 3D](../screenshots/V1_pcb_bottom_3d.jpg)
-
-| 2D top | 2D bottom |
-|---|---|
-| ![2D top](../screenshots/V1_pcb_2d_top.png) | ![2D bottom](../screenshots/V1_pcb_2d_bottom.png) |
+2D layer view: ![2D](../screenshots/V1_pcb_2d_top.png)
 
 **3D models:** every part except the mounting holes has a 3D body. 21 parts whose footprints had none (the four eFuses, SW1, the six
 22 µF caps, the nine SOT-23 diodes, U10) get their STEP file from `hardware/Libraries/SquidDebugger_V1/3D` when
