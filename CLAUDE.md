@@ -173,6 +173,10 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
 - Nov 27 late: the user redrew the bottom artwork in PORTRAIT (bigger mantis, ladybug top-left, SDSL logo top-right turned 270, title turned 270
   between the headers). Logo and title are hand-placed: PlaceV1 no longer calls PutLogo or moves the title (LOGO_BOX / TITLE_BOX are
   only keep-outs). pcb_shots.py BOTTOM_TURN = 0. The user supplies the repo pictures themself when they prefer their own shots.
+- A365 (Nov 27, 3:51 PM): on the user's request hardware/ was copied into the server-linked folder Documents/Altium/Debugging Board V1
+  (its git origin = afs-vcs-uw1.365.altium.com; backup next to it: "... backup before V1 copy 20261127_1548"). The USER clicks Save to Server
+  on that (5/6-sheet, lower) project; never click it yourself, and never on the hardware/ copy (same ManagedProjectGUID, GitHub remote).
+  Keep editing in hardware/; re-copy before each server save (robocopy /E /R:1 /W:1, skip History/Project Logs/Outputs/__Previews).
 - Change log for presentation: design/V1_CHANGELOG.md (what/why/alternatives) — append every change.
 - Net scope Global (HierarchyMode=3) DONE. TPS2121RUXR = CMP-019-00076-1 (pins verified).
 - MPS panel is a slide-out + right-click menu: invisible to computer use → user creates workspace parts.
