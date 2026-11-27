@@ -236,3 +236,16 @@ Pins read from each symbol with `tools/libpins.py` and checked against the datas
 | SMBJ5.0A | — | — | Reuse the SMBJ13A symbol and footprint (same SMB package and TVS symbol); only the MPN and part choice change. |
 | BZX84-C4V7,215 | 1 A, 3 C (pin 2 NC, no symbol pin) | SOT95P230X110-3N (same as BAT54A), pads 1–3 | ✅ Nexperia SOT-23 zener pinout: 1 anode, 2 NC, 3 cathode. In the circuit: cathode → PR1, anode → GND. |
 | 2N7002-7-F footprint note | — | SOT103P240X110-3N: pads 2.03 mm apart (std SOT-23 1.90) | ⚠ Consider using SOT95P230X110-3N (the BAT54/BZX84 footprint) instead. |
+
+## 9. PSU current limit (added Nov 27, changelog #29)
+
+The TPS2121 limit (ILM = 100 kΩ, 1.24 A typical, 0.83–1.65 A) is that chip's minimum and can exceed J1's 1 A contact
+rating. One TPS259621DDAR eFuse per bench rail now sits between the jack and IN1:
+
+- I_LIM = 903 / R_ILM + 0.0112 A, R_ILM = 1.02 kΩ → 0.90 A typical (0.83–0.97 A).
+- EN/UVLO (1.20 V rising, 1.10 V falling, 7 V maximum): 100 k / 100 k → on at 2.40 V; 470 k / 100 k on 12 V → on at 6.84 V.
+- OVCSEL: GND → 3.8 V clamp (3V3); 402 kΩ → 5.7 V (5V, 5V RF); open → 13.8 V (12V).
+- Drop at 0.9 A: 89 mΩ × 0.9 A = 80 mV, plus 50 mV in the TPS2121.
+
+Full description: docs/02-power-architecture.md section 2.9.
+

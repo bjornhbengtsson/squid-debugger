@@ -25,6 +25,9 @@ Begin
   T.EndModify;
   T.BeginModify;
   Rc := T.BoundingRectangleForSelection;
+  If Rc.Right - Rc.Left > MilsToCoord(5000) Then   { a text that came from a far-off footprint has a corrupt box: move it by its anchor; the second pass centres it }
+    T.MoveByXY(MilsToCoord(X0 + X / 0.0254) - T.XLocation, MilsToCoord(Y0 + Y / 0.0254) - T.YLocation)
+  Else
   T.MoveByXY(MilsToCoord(X0 + X / 0.0254) - (Rc.Left + Rc.Right) Div 2, MilsToCoord(Y0 + Y / 0.0254) - (Rc.Bottom + Rc.Top) Div 2);
   T.EndModify; T.GraphicallyInvalidate;
 End;
@@ -323,6 +326,137 @@ Begin
   Added := Added + 1;
 End;
 
+Procedure Trace(S : String);   { progress log for MakeDDA8: tools/altium/make_dda8.log }
+Var L : TStringList;
+Begin
+  L := TStringList.Create;
+  If FileExists('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\tools\altium\make_dda8.log') Then L.LoadFromFile('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\tools\altium\make_dda8.log');
+  L.Add(S); L.SaveToFile('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\tools\altium\make_dda8.log'); L.Free;
+End;
+
+Procedure LibPad(Comp : IPCB_LibComponent; Lib : IPCB_Library; Nm : String; X, Y, W, H : Double);
+Var Pd : IPCB_Pad; Ox, Oy : Integer;
+Begin
+  Trace('pad ' + Nm + ' a');
+  Ox := Lib.Board.XOrigin; Oy := Lib.Board.YOrigin;
+  Trace('pad b origin ' + IntToStr(Ox) + ' ' + IntToStr(Oy));
+  Pd := PCBServer.PCBObjectFactory(ePadObject, eNoDimension, eCreate_Default);
+  Trace('pad c');
+  Pd.X := Ox + MilsToCoord(X / 0.0254); Pd.Y := Oy + MilsToCoord(Y / 0.0254);
+  Pd.TopXSize := MilsToCoord(W / 0.0254); Pd.TopYSize := MilsToCoord(H / 0.0254);
+  Trace('pad d');
+  Pd.HoleSize := 0; Pd.Layer := eTopLayer; Pd.Name := Nm;
+  Trace('pad e');
+  Pd.TopShape := eRectangular;
+  Trace('pad f');
+  Comp.AddPCBObject(Pd);
+  Trace('pad g');
+  Trace('pad h');
+End;
+
+Procedure LibLine(Comp : IPCB_LibComponent; Lib : IPCB_Library; X1, Y1, X2, Y2 : Double);
+Var Tr : IPCB_Track;
+Begin
+  Tr := PCBServer.PCBObjectFactory(eTrackObject, eNoDimension, eCreate_Default);
+  Tr.Layer := eTopOverlay; Tr.Width := MilsToCoord(0.15 / 0.0254);
+  Tr.x1 := Lib.Board.XOrigin + MilsToCoord(X1 / 0.0254); Tr.y1 := Lib.Board.YOrigin + MilsToCoord(Y1 / 0.0254);
+  Tr.x2 := Lib.Board.XOrigin + MilsToCoord(X2 / 0.0254); Tr.y2 := Lib.Board.YOrigin + MilsToCoord(Y2 / 0.0254);
+  Comp.AddPCBObject(Tr);
+End;
+
+Procedure MakeDDA8;
+{ Footprint for the TPS259621 (TI DDA, HSOIC-8 with thermal pad): 8 pads 1.55 x 0.6 mm on 1.27 mm pitch, rows 5.4 mm
+  apart, thermal pad 2.4 x 3.1 mm. The thermal pad is named 1 as well, because pin 1 is GND. Check the pad sizes
+  against TI land pattern DDA0008 before ordering boards. Open the library document first, then run this. }
+Var Lib : IPCB_Library; Comp : IPCB_LibComponent; I : Integer; Old : TInterfaceList; G : IPCB_GroupIterator; O : IPCB_Primitive;
+Begin
+  Trace('start');
+  Lib := PCBServer.GetCurrentPCBLibrary;
+  If Lib = Nil Then Begin ShowMessage('Open the footprint library document first'); Exit; End;
+  Trace('lib ok');
+  Comp := Lib.GetComponentByName('SOIC127P600X170-9N');
+  Trace('lookup done');
+  If Comp = Nil Then Begin
+    Comp := PCBServer.CreatePCBLibComp; Comp.Name := 'SOIC127P600X170-9N'; Lib.RegisterComponent(Comp);
+  End;
+  Trace('registered');
+  Old := TInterfaceList.Create;
+  G := Comp.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(ePadObject, eTrackObject, eArcObject));
+  O := G.FirstPCBObject;
+  While O <> Nil Do Begin Old.Add(O); O := G.NextPCBObject; End;
+  Comp.GroupIterator_Destroy(G);
+  For I := 0 To Old.Count - 1 Do Comp.RemovePCBObject(Old.Items[I]);
+  Trace('cleared ' + IntToStr(Old.Count));
+  Old.Free;
+  PCBServer.PreProcess;
+  For I := 0 To 3 Do Begin
+    LibPad(Comp, Lib, IntToStr(I + 1), -2.7, 1.905 - 1.27 * I, 1.55, 0.6);
+    LibPad(Comp, Lib, IntToStr(8 - I), 2.7, 1.905 - 1.27 * I, 1.55, 0.6);
+  End;
+  Trace('pads');
+  LibPad(Comp, Lib, '1', 0, 0, 2.4, 3.1);
+  LibLine(Comp, Lib, -1.95, 2.6, 1.95, 2.6); LibLine(Comp, Lib, -1.95, -2.6, 1.95, -2.6);
+  LibLine(Comp, Lib, -3.6, 2.6, -2.2, 2.6);   { pin-1 mark: the top silk line runs on over pin 1 }
+  Trace('silk');
+  PCBServer.PostProcess;
+  Trace('registered on board');
+  Lib.CurrentComponent := Comp;
+  Lib.Board.ViewManager_FullUpdate;
+  Trace('done');
+  ShowMessage('Footprint created. Save the library (File > Save).');
+End;
+
+Procedure FixDDA;   { the script-made eFuse footprint has its pads far from its reference point: move pads and silk onto it }
+Var It : IPCB_BoardIterator; C : IPCB_Component; G : IPCB_GroupIterator; O : IPCB_Primitive; Lst : TInterfaceList; I, N : Integer; L, R, Bt, Tp, Dx, Dy : Integer; Rc : TCoordRect;
+Begin
+  Board := PCBServer.GetPCBBoardByPath('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\DebugBoard.PcbDoc');
+  If Board = Nil Then Board := PCBServer.GetCurrentPCBBoard;
+  If Board = Nil Then Begin ShowMessage('Open DebugBoard.PcbDoc first'); Exit; End;
+  X0 := 11558.4886; Y0 := 3895.504;
+  N := 0; PCBServer.PreProcess;
+  It := Board.BoardIterator_Create; It.AddFilter_ObjectSet(MkSet(eComponentObject)); It.AddFilter_LayerSet(AllLayers); It.AddFilter_Method(eProcessAll);
+  C := It.FirstPCBObject;
+  While C <> Nil Do Begin
+    If C.Pattern = 'SOIC127P600X170-9N' Then Begin
+      Lst := TInterfaceList.Create; L := 2147483647; Bt := 2147483647; R := -2147483647; Tp := -2147483647;
+      G := C.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(ePadObject, eTrackObject));
+      O := G.FirstPCBObject;
+      While O <> Nil Do Begin
+        Lst.Add(O);
+        If O.ObjectId = ePadObject Then Begin
+          Rc := O.BoundingRectangle;
+          If Rc.Left < L Then L := Rc.Left; If Rc.Right > R Then R := Rc.Right;
+          If Rc.Bottom < Bt Then Bt := Rc.Bottom; If Rc.Top > Tp Then Tp := Rc.Top;
+        End;
+        O := G.NextPCBObject;
+      End;
+      C.GroupIterator_Destroy(G);
+      Dx := C.x - (L Div 2 + R Div 2); Dy := C.y - (Bt Div 2 + Tp Div 2);
+      If (Abs(Dx) > MilsToCoord(1)) Or (Abs(Dy) > MilsToCoord(1)) Then Begin
+        For I := 0 To Lst.Count - 1 Do Begin
+          O := Lst.Items[I]; O.BeginModify; O.MoveByXY(Dx, Dy); O.EndModify; O.GraphicallyInvalidate;
+        End;
+        N := N + 1;
+      End;
+      Lst.Free;
+      For I := 1 To 3 Do Begin   { a designator that ran off to the coordinate limit has a corrupt box: bring it back to its part by its anchor }
+        C.Name.BeginModify; C.Name.MoveByXY(C.x - C.Name.XLocation, C.y + MilsToCoord(150) - C.Name.YLocation); C.Name.EndModify;
+        C.Comment.BeginModify; C.Comment.MoveByXY(C.x - C.Comment.XLocation, C.y - C.Comment.YLocation); C.Comment.EndModify;
+      End;
+    End;
+    C := It.NextPCBObject;
+  End;
+  Board.BoardIterator_Destroy(It);
+  PCBServer.PostProcess;
+  ShowMessage('FixDDA: recentred ' + IntToStr(N) + ' footprints');
+End;
+
+Procedure EndCommand;   { if a script stopped half-way, Altium thinks a command is still active and will not save }
+Begin
+  PCBServer.PostProcess; PCBServer.PostProcess; PCBServer.PostProcess;
+  ShowMessage('Open commands closed');
+End;
+
 Procedure NoRooms;   { the ECO adds a placement room off the board; nothing is meant to be confined to it }
 Var It : IPCB_BoardIterator; O : IPCB_Rule; Lst : TInterfaceList; I : Integer;
 Begin
@@ -405,6 +539,26 @@ Begin
   Board.RemovePCBObject(B);
 End;
 
+Function ProbeT(D : String) : String;
+Var C : IPCB_Component; T : IPCB_Text;
+Begin
+  C := Board.GetPcbComponentByRefDes(D); T := C.Name;
+  Result := D + ' loc ' + M(T.XLocation, X0) + ',' + M(T.YLocation, Y0) + ' box ' + R2S(T.BoundingRectangle) + ' sel ' + R2S(T.BoundingRectangleForSelection) + ' size ' + M(T.Size, 0) + ' w ' + M(T.Width, 0) + ' rot ' + FloatToStr(T.Rotation) + ' frameW ' + M(T.MultilineTextWidth, 0) + ' frameH ' + M(T.MultilineTextHeight, 0) + ' ttf ' + IntToStr(Ord(T.UseTTFonts)) + ' mirror ' + IntToStr(Ord(T.MirrorFlag)) + ' auto ' + IntToStr(Ord(C.NameAutoPosition)) + #13#10;
+End;
+
+Procedure ProbeN;   { read-only: designator text position and box of two eFuses and one normal part -> tools/altium/probe_n.txt }
+Var S : TStringList; C : IPCB_Component; T : IPCB_Text;
+Begin
+  Board := PCBServer.GetPCBBoardByPath('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\DebugBoard.PcbDoc');
+  If Board = Nil Then Board := PCBServer.GetCurrentPCBBoard;
+  If Board = Nil Then Begin ShowMessage('Open DebugBoard.PcbDoc first'); Exit; End;
+  X0 := 11558.4886; Y0 := 3895.504;
+  S := TStringList.Create;
+  S.Add(ProbeT('U14')); S.Add(ProbeT('U15')); S.Add(ProbeT('R58'));
+  S.SaveToFile('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\tools\altium\probe_n.txt'); S.Free;
+  ShowMessage('ProbeN written');
+End;
+
 Procedure DumpV1;
 Var It : IPCB_BoardIterator; C : IPCB_Component; G : IPCB_GroupIterator; Pd : IPCB_Pad; Vi : IPCB_Via; T : IPCB_Text; S : TStringList; N : String; Nb : Integer; Bd : IPCB_Primitive;
 Begin
@@ -427,6 +581,15 @@ Begin
       Pd := G.NextPCBObject;
     End;
     C.GroupIterator_Destroy(G);
+    If (C.BoundingRectangleNoNameComment.Top - C.BoundingRectangleNoNameComment.Bottom > MilsToCoord(2400)) Or (C.BoundingRectangleNoNameComment.Right - C.BoundingRectangleNoNameComment.Left > MilsToCoord(2400)) Then Begin
+      G := C.GroupIterator_Create;   { a footprint bigger than 60 mm has a stray primitive: list them all }
+      Bd := G.FirstPCBObject;
+      While Bd <> Nil Do Begin
+        S.Add('X|' + C.Name.Text + '|' + Bd.ObjectIDString + '|' + Layer2String(Bd.Layer) + '|' + R2S(Bd.BoundingRectangle));
+        Bd := G.NextPCBObject;
+      End;
+      C.GroupIterator_Destroy(G);
+    End;
     G := C.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(eComponentBodyObject));
     Nb := 0; Bd := G.FirstPCBObject;
     While Bd <> Nil Do Begin Nb := Nb + 1; Bd := G.NextPCBObject; End;
@@ -557,6 +720,10 @@ Begin
   Put('C42', 25.000, 87.000, 0, True);
   Put('C43', 32.000, 87.000, 0, True);
   Put('C44', 25.000, 89.900, 0, True);
+  Put('C45', 16.000, 78.500, 90, True);
+  Put('C46', 45.000, 78.500, 90, True);
+  Put('C47', 39.400, 38.000, 0, True);
+  Put('C48', 21.600, 36.600, 0, True);
   Put('C6', 13.400, 43.100, 90, False);
   Put('C7', 39.850, 38.300, 0, False);
   Put('C8', 39.850, 45.700, 0, False);
@@ -643,8 +810,22 @@ Begin
   Put('R55', 32.000, 96.100, 0, True);
   Put('R56', 32.000, 99.000, 0, True);
   Put('R57', 32.000, 89.900, 0, True);
+  Put('R58', 4.000, 73.900, 0, True);
+  Put('R59', 8.200, 73.900, 0, True);
   Put('R6', 13.350, 63.700, 90, False);
+  Put('R60', 12.400, 73.900, 0, True);
+  Put('R61', 44.600, 73.900, 0, True);
+  Put('R62', 48.800, 73.900, 0, True);
+  Put('R63', 53.000, 73.900, 0, True);
+  Put('R64', 58.000, 78.500, 90, True);
+  Put('R65', 39.400, 26.800, 0, True);
+  Put('R66', 39.400, 29.600, 0, True);
+  Put('R67', 39.400, 32.400, 0, True);
+  Put('R68', 39.400, 35.200, 0, True);
+  Put('R69', 21.600, 28.200, 0, True);
   Put('R7', 16.750, 63.700, 90, False);
+  Put('R70', 21.600, 31.000, 0, True);
+  Put('R71', 21.600, 33.800, 0, True);
   Put('R8', 15.600, 17.600, 90, True);
   Put('R9', 24.600, 17.600, 90, True);
   Put('SW1', 30.500, 23.400, 0, False);
@@ -656,7 +837,11 @@ Begin
   Put('U1', 30.500, 83.650, 0, False);
   Put('U10', 55.800, 53.100, 0, False);
   Put('U13', 16.625, 104.000, 0, False);
-  Put('U2', 20.800, 20.613, 90, False);
+  Put('U14', 9.000, 78.500, 0, True);
+  Put('U15', 52.000, 78.500, 0, True);
+  Put('U16', 44.500, 31.000, 90, True);
+  Put('U17', 16.500, 31.000, 90, True);
+  Put('U2', 20.800, 20.612, 90, False);
   Put('U3', 10.500, 45.300, 0, False);
   Put('U4', 49.700, 102.977, 270, False);
   Put('U5', 51.100, 61.500, 0, False);
@@ -697,6 +882,10 @@ Begin
   Des('C42', 25.000, 85.150, 0);
   Des('C43', 32.000, 85.150, 0);
   Des('C44', 27.781, 89.900, 0);
+  Des('C45', 16.000, 80.675, 0);
+  Des('C46', 42.544, 78.500, 0);
+  Des('C47', 39.400, 39.850, 0);
+  Des('C48', 21.600, 38.450, 0);
   Des('C6', 13.400, 40.387, 0);
   Des('C7', 39.850, 36.394, 0);
   Des('C8', 39.850, 47.606, 0);
@@ -705,8 +894,8 @@ Begin
   Des('D10', 55.850, 45.575, 0);
   Des('D11', 5.600, 55.950, 0);
   Des('D12', 13.500, 55.950, 0);
-  Des('D13', 46.200, 72.150, 0);
-  Des('D14', 54.100, 72.150, 0);
+  Des('D13', 49.731, 69.700, 0);
+  Des('D14', 57.631, 69.700, 0);
   Des('D15', 55.300, 18.850, 0);
   Des('D16', 12.000, 18.850, 0);
   Des('D2', 13.350, 54.512, 0);
@@ -783,8 +972,22 @@ Begin
   Des('R55', 35.147, 96.100, 0);
   Des('R56', 32.000, 100.906, 0);
   Des('R57', 35.147, 89.900, 0);
+  Des('R58', 4.000, 71.994, 0);
+  Des('R59', 8.200, 71.994, 0);
   Des('R6', 13.350, 61.159, 0);
+  Des('R60', 12.400, 71.994, 0);
+  Des('R61', 44.600, 75.806, 0);
+  Des('R62', 49.535, 71.994, 0);
+  Des('R63', 56.147, 73.900, 0);
+  Des('R64', 58.000, 81.041, 0);
+  Des('R65', 36.253, 26.800, 0);
+  Des('R66', 36.253, 29.600, 0);
+  Des('R67', 36.253, 31.694, 0);
+  Des('R68', 42.547, 35.906, 0);
+  Des('R69', 21.600, 26.294, 0);
   Des('R7', 16.750, 61.159, 0);
+  Des('R70', 24.747, 31.000, 0);
+  Des('R71', 24.141, 33.800, 90);
   Des('R8', 15.600, 15.059, 0);
   Des('R9', 24.600, 15.059, 0);
   Des('SW1', 30.500, 16.655, 0);
@@ -796,6 +999,10 @@ Begin
   Des('U1', 41.929, 83.650, 0);
   Des('U10', 56.619, 55.570, 0);
   Des('U13', 19.100, 104.000, 90);
+  Des('U14', 3.740, 78.500, 0);
+  Des('U15', 46.740, 80.734, 0);
+  Des('U16', 44.500, 26.346, 0);
+  Des('U17', 16.500, 35.654, 0);
   Des('U2', 20.800, 17.263, 0);
   Des('U3', 10.200, 47.625, 0);
   Des('U4', 49.700, 107.527, 0);
@@ -836,6 +1043,10 @@ Begin
   Des('C42', 25.000, 85.150, 0);
   Des('C43', 32.000, 85.150, 0);
   Des('C44', 27.781, 89.900, 0);
+  Des('C45', 16.000, 80.675, 0);
+  Des('C46', 42.544, 78.500, 0);
+  Des('C47', 39.400, 39.850, 0);
+  Des('C48', 21.600, 38.450, 0);
   Des('C6', 13.400, 40.387, 0);
   Des('C7', 39.850, 36.394, 0);
   Des('C8', 39.850, 47.606, 0);
@@ -844,8 +1055,8 @@ Begin
   Des('D10', 55.850, 45.575, 0);
   Des('D11', 5.600, 55.950, 0);
   Des('D12', 13.500, 55.950, 0);
-  Des('D13', 46.200, 72.150, 0);
-  Des('D14', 54.100, 72.150, 0);
+  Des('D13', 49.731, 69.700, 0);
+  Des('D14', 57.631, 69.700, 0);
   Des('D15', 55.300, 18.850, 0);
   Des('D16', 12.000, 18.850, 0);
   Des('D2', 13.350, 54.512, 0);
@@ -922,8 +1133,22 @@ Begin
   Des('R55', 35.147, 96.100, 0);
   Des('R56', 32.000, 100.906, 0);
   Des('R57', 35.147, 89.900, 0);
+  Des('R58', 4.000, 71.994, 0);
+  Des('R59', 8.200, 71.994, 0);
   Des('R6', 13.350, 61.159, 0);
+  Des('R60', 12.400, 71.994, 0);
+  Des('R61', 44.600, 75.806, 0);
+  Des('R62', 49.535, 71.994, 0);
+  Des('R63', 56.147, 73.900, 0);
+  Des('R64', 58.000, 81.041, 0);
+  Des('R65', 36.253, 26.800, 0);
+  Des('R66', 36.253, 29.600, 0);
+  Des('R67', 36.253, 31.694, 0);
+  Des('R68', 42.547, 35.906, 0);
+  Des('R69', 21.600, 26.294, 0);
   Des('R7', 16.750, 61.159, 0);
+  Des('R70', 24.747, 31.000, 0);
+  Des('R71', 24.141, 33.800, 90);
   Des('R8', 15.600, 15.059, 0);
   Des('R9', 24.600, 15.059, 0);
   Des('SW1', 30.500, 16.655, 0);
@@ -935,6 +1160,10 @@ Begin
   Des('U1', 41.929, 83.650, 0);
   Des('U10', 56.619, 55.570, 0);
   Des('U13', 19.100, 104.000, 90);
+  Des('U14', 3.740, 78.500, 0);
+  Des('U15', 46.740, 80.734, 0);
+  Des('U16', 44.500, 26.346, 0);
+  Des('U17', 16.500, 35.654, 0);
   Des('U2', 20.800, 17.263, 0);
   Des('U3', 10.200, 47.625, 0);
   Des('U4', 49.700, 107.527, 0);
@@ -1149,10 +1378,87 @@ Begin
   Wipe(eRegionObject, eBottomOverlay, 32.05, 97.75, 33.85, 100.25);
   Wipe(eRegionObject, eBottomOverlay, 30.15, 88.65, 31.95, 91.15);
   Wipe(eRegionObject, eBottomOverlay, 32.05, 88.65, 33.85, 91.15);
+  Wipe(eRegionObject, eBottomOverlay, 7.40, 76.55, 10.60, 80.45);
+  Wipe(eRegionObject, eBottomOverlay, 10.52, 79.70, 12.88, 81.11);
+  Wipe(eRegionObject, eBottomOverlay, 5.12, 79.70, 7.48, 81.11);
+  Wipe(eRegionObject, eBottomOverlay, 10.52, 78.43, 12.88, 79.84);
+  Wipe(eRegionObject, eBottomOverlay, 5.12, 78.43, 7.48, 79.84);
+  Wipe(eRegionObject, eBottomOverlay, 10.52, 77.16, 12.88, 78.57);
+  Wipe(eRegionObject, eBottomOverlay, 5.12, 77.16, 7.48, 78.57);
+  Wipe(eRegionObject, eBottomOverlay, 10.52, 75.89, 12.88, 77.30);
+  Wipe(eRegionObject, eBottomOverlay, 5.12, 75.89, 7.48, 77.30);
+  Wipe(eRegionObject, eBottomOverlay, 15.18, 77.12, 16.83, 78.37);
+  Wipe(eRegionObject, eBottomOverlay, 15.18, 78.62, 16.83, 79.87);
+  Wipe(eRegionObject, eBottomOverlay, 2.15, 72.65, 3.95, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 4.05, 72.65, 5.85, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 6.35, 72.65, 8.15, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 8.25, 72.65, 10.05, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 10.55, 72.65, 12.35, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 12.45, 72.65, 14.25, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 50.40, 76.55, 53.60, 80.45);
+  Wipe(eRegionObject, eBottomOverlay, 53.52, 79.70, 55.88, 81.11);
+  Wipe(eRegionObject, eBottomOverlay, 48.12, 79.70, 50.48, 81.11);
+  Wipe(eRegionObject, eBottomOverlay, 53.52, 78.43, 55.88, 79.84);
+  Wipe(eRegionObject, eBottomOverlay, 48.12, 78.43, 50.48, 79.84);
+  Wipe(eRegionObject, eBottomOverlay, 53.52, 77.16, 55.88, 78.57);
+  Wipe(eRegionObject, eBottomOverlay, 48.12, 77.16, 50.48, 78.57);
+  Wipe(eRegionObject, eBottomOverlay, 53.52, 75.89, 55.88, 77.30);
+  Wipe(eRegionObject, eBottomOverlay, 48.12, 75.89, 50.48, 77.30);
+  Wipe(eRegionObject, eBottomOverlay, 44.18, 77.12, 45.83, 78.37);
+  Wipe(eRegionObject, eBottomOverlay, 44.18, 78.62, 45.83, 79.87);
+  Wipe(eRegionObject, eBottomOverlay, 42.75, 72.65, 44.55, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 44.65, 72.65, 46.45, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 46.95, 72.65, 48.75, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 48.85, 72.65, 50.65, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 51.15, 72.65, 52.95, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 53.05, 72.65, 54.85, 75.15);
+  Wipe(eRegionObject, eBottomOverlay, 56.75, 76.65, 59.25, 78.45);
+  Wipe(eRegionObject, eBottomOverlay, 56.75, 78.55, 59.25, 80.35);
+  Wipe(eRegionObject, eBottomOverlay, 14.55, 29.40, 18.45, 32.60);
+  Wipe(eRegionObject, eBottomOverlay, 13.89, 32.52, 15.30, 34.88);
+  Wipe(eRegionObject, eBottomOverlay, 13.89, 27.12, 15.30, 29.48);
+  Wipe(eRegionObject, eBottomOverlay, 15.16, 32.52, 16.57, 34.88);
+  Wipe(eRegionObject, eBottomOverlay, 15.16, 27.12, 16.57, 29.48);
+  Wipe(eRegionObject, eBottomOverlay, 16.43, 32.52, 17.84, 34.88);
+  Wipe(eRegionObject, eBottomOverlay, 16.43, 27.12, 17.84, 29.48);
+  Wipe(eRegionObject, eBottomOverlay, 17.70, 32.52, 19.11, 34.88);
+  Wipe(eRegionObject, eBottomOverlay, 17.70, 27.12, 19.11, 29.48);
+  Wipe(eRegionObject, eBottomOverlay, 19.75, 26.95, 21.55, 29.45);
+  Wipe(eRegionObject, eBottomOverlay, 21.65, 26.95, 23.45, 29.45);
+  Wipe(eRegionObject, eBottomOverlay, 19.75, 29.75, 21.55, 32.25);
+  Wipe(eRegionObject, eBottomOverlay, 21.65, 29.75, 23.45, 32.25);
+  Wipe(eRegionObject, eBottomOverlay, 19.75, 32.55, 21.55, 35.05);
+  Wipe(eRegionObject, eBottomOverlay, 21.65, 32.55, 23.45, 35.05);
+  Wipe(eRegionObject, eBottomOverlay, 20.23, 35.77, 21.48, 37.43);
+  Wipe(eRegionObject, eBottomOverlay, 21.72, 35.77, 22.97, 37.43);
+  Wipe(eRegionObject, eBottomOverlay, 42.55, 29.40, 46.45, 32.60);
+  Wipe(eRegionObject, eBottomOverlay, 41.89, 32.52, 43.30, 34.88);
+  Wipe(eRegionObject, eBottomOverlay, 41.89, 27.12, 43.30, 29.48);
+  Wipe(eRegionObject, eBottomOverlay, 43.16, 32.52, 44.57, 34.88);
+  Wipe(eRegionObject, eBottomOverlay, 43.16, 27.12, 44.57, 29.48);
+  Wipe(eRegionObject, eBottomOverlay, 44.43, 32.52, 45.84, 34.88);
+  Wipe(eRegionObject, eBottomOverlay, 44.43, 27.12, 45.84, 29.48);
+  Wipe(eRegionObject, eBottomOverlay, 45.70, 32.52, 47.11, 34.88);
+  Wipe(eRegionObject, eBottomOverlay, 45.70, 27.12, 47.11, 29.48);
+  Wipe(eRegionObject, eBottomOverlay, 37.55, 25.55, 39.35, 28.05);
+  Wipe(eRegionObject, eBottomOverlay, 39.45, 25.55, 41.25, 28.05);
+  Wipe(eRegionObject, eBottomOverlay, 37.55, 28.35, 39.35, 30.85);
+  Wipe(eRegionObject, eBottomOverlay, 39.45, 28.35, 41.25, 30.85);
+  Wipe(eRegionObject, eBottomOverlay, 37.55, 31.15, 39.35, 33.65);
+  Wipe(eRegionObject, eBottomOverlay, 39.45, 31.15, 41.25, 33.65);
+  Wipe(eRegionObject, eBottomOverlay, 37.55, 33.95, 39.35, 36.45);
+  Wipe(eRegionObject, eBottomOverlay, 39.45, 33.95, 41.25, 36.45);
+  Wipe(eRegionObject, eBottomOverlay, 38.02, 37.18, 39.27, 38.83);
+  Wipe(eRegionObject, eBottomOverlay, 39.52, 37.18, 40.77, 38.83);
+  Wipe(eRegionObject, eBottomOverlay, 48.15, 71.22, 50.92, 72.77);
   Wipe(eRegionObject, eBottomOverlay, 27.18, 66.62, 29.24, 68.18);
   Wipe(eRegionObject, eBottomOverlay, 27.18, 73.02, 29.24, 74.58);
   Wipe(eRegionObject, eBottomOverlay, 27.18, 79.42, 29.24, 80.98);
+  Wipe(eRegionObject, eBottomOverlay, 23.37, 32.42, 24.92, 35.18);
+  Wipe(eRegionObject, eBottomOverlay, 34.87, 30.92, 37.63, 32.47);
+  Wipe(eRegionObject, eBottomOverlay, 41.17, 35.13, 43.93, 36.68);
   Wipe(eRegionObject, eBottomOverlay, 26.40, 89.12, 29.16, 90.68);
+  Wipe(eRegionObject, eBottomOverlay, 48.35, 68.92, 51.11, 70.48);
   Wipe(eRegionObject, eBottomOverlay, 20.57, 14.28, 22.63, 15.83);
   Wipe(eRegionObject, eBottomOverlay, 26.77, 63.32, 29.53, 64.88);
   Wipe(eRegionObject, eBottomOverlay, 17.57, 14.28, 19.63, 15.83);
@@ -1161,24 +1467,36 @@ Begin
   Wipe(eRegionObject, eBottomOverlay, 26.77, 92.42, 29.53, 93.98);
   Wipe(eRegionObject, eBottomOverlay, 26.77, 95.33, 29.53, 96.88);
   Wipe(eRegionObject, eBottomOverlay, 26.77, 98.22, 29.53, 99.78);
+  Wipe(eRegionObject, eBottomOverlay, 6.82, 71.22, 9.58, 72.77);
+  Wipe(eRegionObject, eBottomOverlay, 54.77, 73.12, 57.53, 74.68);
+  Wipe(eRegionObject, eBottomOverlay, 34.87, 28.83, 37.63, 30.38);
+  Wipe(eRegionObject, eBottomOverlay, 23.37, 30.23, 26.13, 31.77);
+  Wipe(eRegionObject, eBottomOverlay, 45.36, 79.96, 48.12, 81.51);
+  Wipe(eRegionObject, eBottomOverlay, 56.25, 68.92, 59.01, 70.48);
   Wipe(eRegionObject, eBottomOverlay, 25.12, 57.98, 27.18, 59.53);
   Wipe(eRegionObject, eBottomOverlay, 15.27, 43.23, 18.03, 44.77);
   Wipe(eRegionObject, eBottomOverlay, 55.87, 59.42, 58.63, 60.97);
+  Wipe(eRegionObject, eBottomOverlay, 43.22, 75.03, 45.98, 76.58);
+  Wipe(eRegionObject, eBottomOverlay, 34.87, 26.03, 37.63, 27.57);
   Wipe(eRegionObject, eBottomOverlay, 14.57, 14.28, 16.63, 15.83);
   Wipe(eRegionObject, eBottomOverlay, 23.62, 84.37, 26.38, 85.92);
   Wipe(eRegionObject, eBottomOverlay, 26.77, 82.52, 29.53, 84.08);
   Wipe(eRegionObject, eBottomOverlay, 15.27, 46.12, 18.03, 47.67);
   Wipe(eRegionObject, eBottomOverlay, 55.87, 62.32, 58.63, 63.87);
+  Wipe(eRegionObject, eBottomOverlay, 56.62, 80.27, 59.38, 81.82);
+  Wipe(eRegionObject, eBottomOverlay, 20.22, 25.52, 22.98, 27.07);
   Wipe(eRegionObject, eBottomOverlay, 10.62, 18.07, 13.38, 19.62);
   Wipe(eRegionObject, eBottomOverlay, 1.07, 43.23, 3.83, 44.77);
   Wipe(eRegionObject, eBottomOverlay, 41.67, 59.42, 44.43, 60.97);
+  Wipe(eRegionObject, eBottomOverlay, 15.12, 34.88, 17.88, 36.43);
+  Wipe(eRegionObject, eBottomOverlay, 2.62, 71.22, 5.38, 72.77);
   Wipe(eRegionObject, eBottomOverlay, 7.37, 46.12, 10.13, 47.67);
   Wipe(eRegionObject, eBottomOverlay, 47.97, 62.32, 50.73, 63.87);
+  Wipe(eRegionObject, eBottomOverlay, 2.36, 77.72, 5.12, 79.28);
   Wipe(eRegionObject, eBottomOverlay, 46.02, 18.73, 48.78, 20.28);
+  Wipe(eRegionObject, eBottomOverlay, 43.12, 25.57, 45.88, 27.12);
   Wipe(eRegionObject, eBottomOverlay, 4.22, 55.17, 6.98, 56.72);
   Wipe(eRegionObject, eBottomOverlay, 12.12, 55.17, 14.88, 56.72);
-  Wipe(eRegionObject, eBottomOverlay, 44.82, 71.38, 47.58, 72.93);
-  Wipe(eRegionObject, eBottomOverlay, 52.72, 71.38, 55.48, 72.93);
   Wipe(eRegionObject, eBottomOverlay, 7.37, 40.32, 10.13, 41.87);
   Wipe(eRegionObject, eBottomOverlay, 7.37, 49.02, 10.13, 50.57);
   Wipe(eRegionObject, eBottomOverlay, 15.27, 49.02, 18.03, 50.57);
@@ -1197,17 +1515,22 @@ Begin
   Wipe(eRegionObject, eBottomOverlay, 33.77, 89.12, 36.53, 90.68);
   Wipe(eRegionObject, eBottomOverlay, 23.57, 14.28, 25.63, 15.83);
   Wipe(eRegionObject, eBottomOverlay, 2.72, 18.73, 5.48, 20.28);
+  Wipe(eRegionObject, eBottomOverlay, 11.02, 71.22, 13.78, 72.77);
   Wipe(eRegionObject, eBottomOverlay, 30.62, 84.37, 33.38, 85.92);
   Wipe(eRegionObject, eBottomOverlay, 33.77, 82.52, 36.53, 84.08);
+  Wipe(eRegionObject, eBottomOverlay, 38.02, 39.08, 40.78, 40.63);
+  Wipe(eRegionObject, eBottomOverlay, 20.22, 37.67, 22.98, 39.22);
   Wipe(eRegionObject, eBottomOverlay, 15.27, 40.32, 18.03, 41.87);
   Wipe(eRegionObject, eBottomOverlay, 2.72, 12.02, 5.48, 13.57);
   Wipe(eRegionObject, eBottomOverlay, 53.92, 18.07, 56.68, 19.62);
+  Wipe(eRegionObject, eBottomOverlay, 41.16, 77.72, 43.92, 79.28);
   Wipe(eRegionObject, eBottomOverlay, 44.82, 54.62, 47.58, 56.17);
   Wipe(eRegionObject, eBottomOverlay, 52.72, 54.62, 55.48, 56.17);
   Wipe(eRegionObject, eBottomOverlay, 30.62, 58.32, 33.38, 59.87);
   Wipe(eRegionObject, eBottomOverlay, 30.62, 100.13, 33.38, 101.68);
+  Wipe(eRegionObject, eBottomOverlay, 14.62, 79.90, 17.38, 81.45);
   Wipe(eRegionObject, eBottomOverlay, 12.00, 20.60, 49.00, 24.60);
   PCBServer.PostProcess;
   Board.ViewManager_FullUpdate;
-  If Missing <> '' Then ShowMessage('Not on board: ' + Missing) Else ShowMessage('V1 placement done: 139 parts, 139 designators. 3D models seated: ' + IntToStr(Added) + ' (' + Sizes + ')');
+  If Missing <> '' Then ShowMessage('Not on board: ' + Missing) Else ShowMessage('V1 placement done: 161 parts, 161 designators. 3D models seated: ' + IntToStr(Added) + ' (' + Sizes + ')');
 End;

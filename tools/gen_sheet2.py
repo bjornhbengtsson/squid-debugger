@@ -1,5 +1,5 @@
-"""Build Squid Debugger V1 sheet 2 (power path) from V1_PLAN section 3.
-Usage: python tools/gen_sheet2.py hardware/DebugBoardMuxes.SchDoc hardware/DebugBoardPowerControl.SchDoc hardware/DebugBoard3V3Mux.SchDoc hardware/DebugBoard5VMux.SchDoc
+"""Build Squid Debugger V1 sheets 2-6 (power path) from V1_PLAN section 3.
+Usage: python tools/gen_sheet2.py hardware/DebugBoardMuxes.SchDoc hardware/DebugBoardPowerControl.SchDoc hardware/DebugBoard3V3Mux.SchDoc hardware/DebugBoard5VMux.SchDoc hardware/DebugBoardLimiters.SchDoc
 Templates: parts placed on DebugBoardMuxes.SchDoc + generic R / 100 nF from DebugBoard.SchDoc."""
 import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
@@ -15,6 +15,47 @@ def by_des(recs, des):
     raise KeyError(des)
 
 FM1 = {'2': '12'}   # sheet-1 font 2 (underlined Times) -> sheet-2 font 12
+
+def efuse_template():
+    """TPS259621DDAR symbol. There is no library part for it yet, so the symbol is built from the placed MIC2544
+    (U4, same 8-pin box): pins renamed and renumbered, the MIC2544's supplier data and footprints removed, and the
+    footprint set to SOIC127P600X170-9N (tools/altium: MakeDDA8 creates that footprint in the project library)."""
+    fsS, SS = load(os.path.join(TPL, 'sheet1_source.SchDoc'))
+    ci = by_des(SS, 'U4'); sub = sorted(subtree(SS, ci))
+    pin = {'7': ('IN', '4'), '1': ('EN/UVLO', '3'), '2': ('OVCSEL', '8'), '5': ('dVdt', '2'),
+           '8': ('OUT', '5'), '6': ('F\\L\\T\\', '6'), '4': ('ILM', '7'), '3': ('GND', '1')}
+    keep_param = {'Comment': 'TPS259621DDAR', 'Value': 'TPS259621', 'Case/Package': 'HSOIC-8 (DDA)', 'Height': '1.7mm', 'Pins': '8',
+                  'Max Supply Voltage': '19V', 'Min Supply Voltage': '2.7V', 'On-State Resistance': '89mOhm', 'Current Rating': '2A'}
+    rename = {'Schedule B': ('Manufacturer', 'Texas Instruments'), 'Part Series': ('Manufacturer Part Number', 'TPS259621DDAR'),
+              'Projected EOL Date': ('Datasheet', 'https://www.ti.com/lit/ds/symlink/tps2596.pdf')}
+    kept, seen_model, dropped = [], False, set()
+    for i in sub:
+        r = SS[i].copy(); rec = r.get('RECORD'); owner = r.get('OwnerIndex')
+        if owner is not None and int(owner) + 1 in dropped: dropped.add(i); continue
+        if rec == '1':
+            for k in ('VaultGUID', 'ItemGUID', 'RevisionGUID', 'SymbolVaultGUID', 'SymbolItemGUID', 'SymbolRevisionGUID'): r.delete(k)
+            for k, v in (('LibReference', 'TPS259621DDAR'), ('DesignItemId', 'TPS259621DDAR'), ('SourceLibraryName', '*'),
+                         ('ComponentDescription', 'eFuse, 2.7-19 V, 0.125-2 A adjustable current limit, 89 mOhm, OV clamp, auto-retry, HSOIC-8')): r.set(k, v)
+        elif rec == '2':
+            n, d = pin[r.get('Designator')]; r.set('Name', n); r.set('Designator', d); r.set('Electrical', 4)
+        elif rec == '41' and r.get('Name') != 'PinUniqueId':
+            nm = r.get('Name')
+            if nm in rename: r.set('Name', rename[nm][0]); r.set('Text', rename[nm][1])
+            elif nm in keep_param: r.set('Text', keep_param[nm])
+            else: dropped.add(i); continue
+        elif rec == '45':
+            if seen_model: dropped.add(i); continue
+            seen_model = True
+            for k in ('ModelVaultGUID', 'ModelItemGUID', 'ModelRevisionGUID', 'UseComponentLibrary', 'DatalinksLocked', 'DatabaseDatalinksLocked'): r.delete(k)
+            r.set('ModelName', 'SOIC127P600X170-9N'); r.set('ModelDatafileEntity0', 'SOIC127P600X170-9N')
+        kept.append((i, r))
+    new_index = {i: n + 1 for n, (i, r) in enumerate(kept)}
+    out_ = [SS[0].copy()]
+    for i, r in kept:
+        if r.get('OwnerIndex') is not None and int(r.get('OwnerIndex')) + 1 in new_index:
+            r.set('OwnerIndex', new_index[int(r.get('OwnerIndex')) + 1] - 1)
+        out_.append(r)
+    return Template(out_, 1, FM1)
 T = {
     'TPS': Template(S2, find_comp(S2, '7e2eec2e55e3eba557c36dfb5d176d9')),
     'TLV': Template(S2, find_comp(S2, 'TLV70433DBVR')),
@@ -31,6 +72,7 @@ T = {
     'C1U50': Template(S2, find_comp(S2, 'GRM21BR71H105KA12L')),
     'R': Template(S1, by_des(S1, 'R2'), FM1),
     'C100N': Template(S1, by_des(S1, 'C22'), FM1),
+    'EFUSE': efuse_template(),
 }
 
 # ------------------------------------------------------------------ design
@@ -46,13 +88,16 @@ blk = []
 for rail, tvs in (('+3V3_PSU', 'SMBJ5.0A'), ('+5V_PSU', 'SMBJ5.0A'), ('+5V_RF_PSU', 'SMBJ5.0A'), ('+12V_PSU', 'SMBJ13A')):
     blk.append(('TVS', nx('D'), tvs, {'C': rail, 'A': 'GND'}))
 CIN = {   # rail -> input cap (designators kept stable; C2/C3/C6 moved here from sheet 1)
-    '+5V_RF_PSU': C('C1U25', '1uF 25V', '+5V_RF_PSU'),
-    '+12V_PSU':   C('C1U50', '1uF 50V', '+12V_PSU'),
+    '+5V_RF_LIM': C('C1U25', '1uF 25V', '+5V_RF_LIM'),
+    '+12V_LIM':   C('C1U50', '1uF 50V', '+12V_LIM'),
     '+3V3_USB':   C('C1U25', '1uF 25V', '+3V3_USB'),
-    '+5V_PSU':    ('C1U25', 'C2', '1uF 25V', {'1': '+5V_PSU', '2': 'GND'}),
+    '+5V_LIM':    ('C1U25', 'C2', '1uF 25V', {'1': '+5V_LIM', '2': 'GND'}),
     '+VBUS_PROT': ('C1U25', 'C3', '1uF 25V', {'1': '+VBUS_PROT', '2': 'GND'}),
-    '+3V3_PSU':   ('C1U25', 'C6', '1uF 25V', {'1': '+3V3_PSU', '2': 'GND'}),
+    '+3V3_LIM':   ('C1U25', 'C6', '1uF 25V', {'1': '+3V3_LIM', '2': 'GND'}),
 }
+# Each bench-supply rail passes through a <= 1 A limiter (sheet 6) before its TPS2121: `x_PSU` (jack) -> eFuse -> `x_LIM`
+# (mux IN1). The PR1 and OV1 dividers still sense the jack side, so limiting never changes the source decision.
+LIM = {'+3V3_PSU': '+3V3_LIM', '+5V_PSU': '+5V_LIM', '+5V_RF_PSU': '+5V_RF_LIM', '+12V_PSU': '+12V_LIM'}
 blocks.append(('Bench Inputs', blk))
 
 # VAUX / +3V3_AUX / XREF
@@ -69,21 +114,22 @@ blk = [
 ]
 blocks.append(('AUX Supply & 2.5V Reference', blk))
 
-def mux(tag, u, in1, in2, out, rt_ov, prio, cout):
-    """prio = (R_T, R_H) for dual-input rails, None for single-input."""
+def mux(tag, u, psu, in2, out, rt_ov, prio, cout):
+    """prio = (R_T, R_H) for dual-input rails, None for single-input. IN1 is the limited rail; dividers sense `psu`."""
+    in1 = LIM[psu]
     pr, ov1, ov2, st, ilm, ss, dis = (f'{x}_{tag}' for x in ('PR1', 'OV1', 'OV2', 'ST', 'ILM', 'SS', 'DIS'))
     pins = {'7': in1, '1': out, '8': out, '5': ov1, '10': ilm, '11': ss, '12': 'GND'}
     blk = [('TPS', u, 'TPS2121RUXR', pins), CIN[in1]] + ([CIN[in2]] if in2 else [])
     if prio:
         pins.update({'2': in2, '6': pr, '3': 'XREF_2V5', '4': ov2, '9': st})
-        blk += [R(prio[0], in1, pr), R('10.0k', pr, 'GND'), R(prio[1], pr, st), R('10.0k', st, '+3V3_AUX'),
+        blk += [R(prio[0], psu, pr), R('10.0k', pr, 'GND'), R(prio[1], pr, st), R('10.0k', st, '+3V3_AUX'),
                 ('ZEN', nx('D'), 'BZX84-C4V7', {'3': pr, '1': 'GND'}),
                 R(rt_ov, in2, ov2), R('10.0k', ov2, 'GND'),
                 ('BAT54A', nx('D'), 'BAT54A', {'3': dis, '1': ov2, '2': ov1})]
     else:
         pins.update({'2': 'GND', '6': 'GND', '3': 'GND', '4': 'GND', '9': 'GND'})
         blk += [('BAT54A', nx('D'), 'BAT54A', {'3': dis, '1': ov1})]
-    blk += [R(rt_ov, in1, ov1), R('10.0k', ov1, 'GND'), R('100k', ilm, 'GND'), C('C100N', '100nF', ss),
+    blk += [R(rt_ov, psu, ov1), R('10.0k', ov1, 'GND'), R('100k', ilm, 'GND'), C('C100N', '100nF', ss),
             C(cout[0], cout[1], out), C(cout[0], cout[1], out)]
     return blk
 
@@ -107,6 +153,22 @@ for net, tag, rt in (('+3V3_TGT', '3V3', '49.9k'), ('+5V_TGT', '5V', '100k'), ('
 # mux status (ST high = IN1/PSU in use) to Pico; 100k limits back-feed into an unpowered Pico (<= 27 uA)
 blk += [R('100k', 'ST_3V3', 'PICO_ST_3V3'), R('100k', 'ST_5V', 'PICO_ST_5V')]
 blocks.append(('Rail Monitors', blk))
+
+# PSU current limit: TPS259621 eFuse per bench rail. I_LIM = 903 / R_ILM + 0.0112 A  ->  1.02 k = 0.90 A typical,
+# <= 0.97 A with part and resistor tolerance, so a J1 contact (1 A) is never overloaded. OVCSEL straps the output
+# clamp: GND = 3.8 V, 402 k = 5.7 V, open = 13.8 V. EN/UVLO needs a divider (abs max 7 V): on above ~2.4 V / ~6.8 V.
+blk = []
+cnt['U'] = 14
+for tag, psu, en_top, ovc in (('3V3', '+3V3_PSU', '100k', 'GND'), ('5V', '+5V_PSU', '100k', '402k'),
+                              ('5VRF', '+5V_RF_PSU', '100k', '402k'), ('12V', '+12V_PSU', '470k', None)):
+    en, ilm, ovn = f'EN_LIM_{tag}', f'ILM_LIM_{tag}', f'OVC_{tag}'
+    pins = {'4': psu, '5': LIM[psu], '1': 'GND', '3': en, '7': ilm}
+    if ovc == 'GND': pins['8'] = 'GND'
+    elif ovc: pins['8'] = ovn
+    blk += [('EFUSE', nx('U'), 'TPS259621DDAR', pins), C('C100N', '100nF', psu),
+            R(en_top, psu, en), R('100k', en, 'GND'), R('1.02k', ilm, 'GND')]
+    if ovc and ovc != 'GND': blk.append(R(ovc, ovn, 'GND'))
+blocks.append(('PSU Current Limit', blk))
 
 # ------------------------------------------------------------------ wired (hand-laid) blocks
 from wired import Block
@@ -136,9 +198,10 @@ head_t = Rec(b'|RECORD=4|OwnerPartId=-1|Location.X=0|Location.Y=0|Color=8388608|
 line_t = Rec(b'|RECORD=6|OwnerPartId=-1|LineWidth=2|LocationCount=2|X1=0|Y1=0|X2=0|Y2=0|UniqueID=AAAAAAAA')
 
 jct_t = Rec(b'|RECORD=29|OwnerPartId=-1|Location.X=0|Location.Y=0|Color=128')
+noerc_t = Rec(b'|RECORD=22|OwnerPartId=-1|Location.X=0|Location.Y=0|Color=255|Orientation=1|Symbol=Thin Cross|IsActive=T|SuppressAll=T|UniqueID=AAAAAAAA')
 KIND = {'wire': None, 'gnd': None, 'pwr': None, 'port': None, 'label': None, 'junction': None}
 def put_kind(kind, **kv):
-    tpl = {'wire': wire_t, 'gnd': gnd_t, 'pwr': pwr_t, 'port': port_t, 'label': lbl_t, 'junction': jct_t}[kind]
+    tpl = {'wire': wire_t, 'gnd': gnd_t, 'pwr': pwr_t, 'port': port_t, 'label': lbl_t, 'junction': jct_t, 'noerc': noerc_t}[kind]
     return put(tpl, **kv)
 
 def is_rail(net): return net.startswith('+') or net in ('VAUX', 'XREF_2V5')
@@ -313,3 +376,4 @@ build_sheet([0, 1, 4, 5], sys.argv[1])             # sheet 2: Power Inputs, AUX 
 build_sheet([6, 7], sys.argv[2])                   # sheet 3: Power Control
 if len(sys.argv) > 3: build_sheet([2], sys.argv[3])  # sheet 4: 3V3 Power Mux
 if len(sys.argv) > 4: build_sheet([3], sys.argv[4])  # sheet 5: 5V Power Mux
+if len(sys.argv) > 5: build_sheet([8], sys.argv[5])  # sheet 6: PSU current limit (eFuses)

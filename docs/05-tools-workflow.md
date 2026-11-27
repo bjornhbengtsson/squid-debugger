@@ -8,7 +8,7 @@ design can be checked in CI or on a machine without Altium.
 | Command | What it does |
 |---|---|
 | `python tools/schnet.py hardware/DebugBoard.SchDoc` | Prints components and nets of a sheet (geometric netlist). |
-| `python tools/verify_gen.py` | Checks sheets 2–5 pin-by-pin against the design spec in `gen_sheet2.py`. Expect `errors=0`. |
+| `python tools/verify_gen.py` | Checks sheets 2–6 pin-by-pin against the design spec in `gen_sheet2.py`. Expect `errors=0` (115 parts). |
 | `python tools/verify_sheet1.py` | Checks sheet 1 against its frozen source: every net, its pins and its name. Expect `errors=0`. |
 | `python tools/compare_nets.py a.SchDoc b.SchDoc` | Connectivity diff of two versions of a sheet. Use it before and after any cosmetic edit. |
 | `python tools/libpins.py some.SchLib` | Lists symbol pins and linked footprints of a library (works on IntLibs too). |
@@ -58,6 +58,12 @@ Gotchas learned the hard way:
 | `python tools/drc_summary.py` | Altium's DRC report, counted per rule. |
 
 Before adding or re-turning a 3D model, read the rule in `design/V1_LAYOUT.md` ("Guard against upside-down models").
+
+Scripts worth knowing (File » Run Script » `SquidPcbTools.PrjScr`): `PlaceV1` (place parts, designators, 3D models),
+`DumpV1` (write real geometry for the checks), `FixDDA` (the script-made eFuse footprint has its pads far from its
+reference point; this moves them onto it, run it once after importing or updating those parts), `EndCommand` (if a
+script stopped half-way and Altium refuses to save), `ViewFront` / `ViewBack` / `ViewBoth`.
+`python tools/doc_diagrams.py` redraws the SVG twins of the docs' Mermaid diagrams (`docs/img/`).
 
 ## How sheet 1 is made
 

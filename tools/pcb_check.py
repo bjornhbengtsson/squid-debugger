@@ -72,7 +72,7 @@ for line in open(pp.DUMP_PATH, encoding='latin-1'):
     elif f[0] == 'Z' and len(f) >= 5: ZR[(f[1], float(f[2]))] = (float(f[3]), float(f[4]))
 m = []
 for d in pp.P:
-    if BODY.get(d, 1) == 0 and not d.startswith('MH'): m.append((d, 'no 3D model'))
+    if BODY.get(d, 1) == 0 and not d.startswith('MH') and d not in pp.NO_MODEL: m.append((d, 'no 3D model'))
     if BODY.get(d, 1) > 1: m.append((d, f'{BODY[d]} 3D bodies'))
 for d, (f, rx, rz, dz) in sorted(pp.STEP.items()):
     z = ZR.get((f, float(rx % 360))) or ZR.get((f, float(rx)))

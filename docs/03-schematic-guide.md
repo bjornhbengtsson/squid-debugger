@@ -91,7 +91,7 @@ The two cathodes of the BAT54A go K1 → OV2 and K2 → OV1. The diodes are iden
 - **U9 TLV70433** → `+3V3_AUX`, with **C28 1 µF** on its output (required for stability).
 - **R13 2.00 k + U10 LM4040-2.5**: the `XREF_2V5` reference, with **C29 1 µF**.
 
-### 3V3 Power Mux (sheet 4): U3 TPS2121 (IN1 = +3V3_PSU, IN2 = +3V3_USB → +3V3_TGT)
+### 3V3 Power Mux (sheet 4): U3 TPS2121 (IN1 = +3V3_LIM, IN2 = +3V3_USB → +3V3_TGT)
 | Part | Role |
 |---|---|
 | C6, C26 | 1 µF input caps on IN1 / IN2 |
@@ -105,20 +105,39 @@ The two cathodes of the BAT54A go K1 → OV2 and K2 → OV1. The diodes are iden
 | C30 100 nF | soft start |
 | C31, C32 22 µF | output caps |
 
-### 5V Power Mux (sheet 5): U5 (IN1 = +5V_PSU, IN2 = +VBUS_PROT → +5V_TGT)
+### 5V Power Mux (sheet 5): U5 (IN1 = +5V_LIM, IN2 = +VBUS_PROT → +5V_TGT)
 Same structure as U3: C2/C3 input caps, R23 8.25k / R24 10.0k PR1 (4.52 V), R25 150k / R26 10.0k hysteresis/ST,
 D13 PR1 clamp, R29/R30 and R27/R28 44.2k/10.0k OV dividers (5.75 V), D14 disable diodes, R31 current limit,
 C33 soft start, C34/C35 output caps.
 
-### 5V RF Switch (sheet 2): U7 (IN1 = +5V_RF_PSU only → +5V_RF_TGT)
+### 5V RF Switch (sheet 2): U7 (IN1 = +5V_RF_LIM only → +5V_RF_TGT)
 Single input: IN2/PR1/CP2/OV2/ST tied to GND.
 - C24 input cap, R32 44.2k / R33 10.0k OV1 divider, D15 disable diode, R34 current limit, C36 soft start,
   C37/C38 output caps.
 
-### 12V Switch (sheet 2): U8 (IN1 = +12V_PSU only → +12V_TGT)
+### 12V Switch (sheet 2): U8 (IN1 = +12V_LIM only → +12V_TGT)
 Like U7:
 - C25 1 µF **50 V** input cap, R35 118k / R36 10.0k OV1 (13.6 V), D16 disable diode, R37 current limit,
   C39 soft start, C40/C41 **10 µF 35 V** output caps.
+
+## Sheet 6: `DebugBoardLimiters.SchDoc` (PSU Current Limit, 22 parts)
+
+One row per bench rail, all four identical in shape: the `+x_PSU` rail enters on the left, the eFuse sits in the
+middle, and `+x_LIM` leaves on the right towards IN1 of that rail's TPS2121. Math and behaviour:
+[2.9](02-power-architecture.md).
+
+| Rail | eFuse | Input cap | EN/UVLO divider (top / bottom) | Limit resistor | Clamp-select resistor |
+|---|---|---|---|---|---|
+| 3V3 | U14 | C45 100 nF | R58 100 k / R59 100 k | R60 1.02 k | pin tied to GND (3.8 V clamp) |
+| 5V | U15 | C46 100 nF | R61 100 k / R62 100 k | R63 1.02 k | R64 402 k (5.7 V clamp) |
+| 5V RF | U16 | C47 100 nF | R65 100 k / R66 100 k | R67 1.02 k | R68 402 k (5.7 V clamp) |
+| 12V | U17 | C48 100 nF | R69 470 k / R70 100 k | R71 1.02 k | pin open (13.8 V clamp) |
+
+- **U14–U17 TPS259621DDAR** pins: 1 GND, 2 dVdt (open), 3 EN/UVLO, 4 IN, 5 OUT, 6 FLT (open, No-ERC), 7 ILM,
+  8 OVCSEL, thermal pad = GND.
+- The mux sheets changed with it: IN1 and its 1 µF cap are on `+x_LIM`; the PR1 and OV1 divider tops stay on `+x_PSU`.
+- The footprint `SOIC127P600X170-9N` was made by script (`MakeDDA8`). Check it against TI land pattern DDA0008
+  before ordering boards (open item).
 
 ## Sheet 3: `DebugBoardPowerControl.SchDoc` (Power Control, 28 parts)
 

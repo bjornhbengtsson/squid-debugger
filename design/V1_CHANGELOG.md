@@ -419,6 +419,43 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
 - **Measured:** SW1 -0.25..4.02 mm (lift 0.25), SOT-23 diodes 1.16..2.11 mm (lift -1.16), 22 uF caps 0..1.8 mm,
   U10 0..1.01 mm. All seat within 0.01 mm of the board.
 
+## 29. A 0.9 A current limiter per bench rail (DONE Nov 27, placed, not routed)
+- **What:** each bench rail now passes its own eFuse between the jack and its TPS2121:
+  U14 (3V3), U15 (5V), U16 (5V RF), U17 (12V), all **TPS259621DDAR**. New nets `+3V3_LIM`, `+5V_LIM`, `+5V_RF_LIM`,
+  `+12V_LIM` feed IN1 of the muxes. 22 new parts (4 eFuses, C45–C48, R58–R71) on a new sheet 6
+  `DebugBoardLimiters.SchDoc`. Total 161 parts. On the PCB they sit on the bottom side beside their jacks.
+- **Why:** J1 contacts are rated 1 A. The docs said the TPS2121's limit protects the connector, and that was wrong:
+  100 kΩ on ILM is already that chip's *lowest* setting, 1.24 A typical and up to 1.65 A. A shorted target could
+  carry 1.65 A through a 1 A contact. Found while reviewing the chat notes of Nov 26.
+- **Numbers:** I_LIM = 903 / R_ILM + 0.0112 A. R_ILM = 1.02 kΩ → 0.90 A typical, 0.83–0.97 A with tolerances, so
+  always under 1 A. EN/UVLO needs a divider (7 V pin maximum): 100 k / 100 k turns the 3V3 and 5 V rails on above
+  2.40 V; 470 k / 100 k turns 12 V on above 6.84 V. OVCSEL straps the output clamp: GND = 3.8 V, 402 kΩ = 5.7 V,
+  open = 13.8 V. Cost: 80 mV extra drop at 0.9 A (0.13 V jack to J1 in total).
+- **Kept as is:** PR1 and OV1 dividers, the TVS diodes and the AUX diode-OR still sense the jack side, so every
+  threshold in sections 2.3 and 2.4 of the docs is unchanged. The TPS2121 limit stays as a backstop.
+- **Alternatives considered:**
+  1. *One limiter for all four rails:* cheaper, but one rail's fault would cut the other three, and four rails at
+     different voltages cannot share one switch.
+  2. *Rely on the bench supply's current limit:* free, but it depends on the user setting it every time.
+  3. *Polyfuses (PTC):* cheap and tiny, but they trip at 2× their rating after seconds, far too slow and loose for a
+     1 A contact.
+  4. *A different mux with a lower limit range:* would mean redoing the verified TPS2121 design.
+  5. *TPS25940 / TPS2595 family eFuses:* similar; the TPS25962 was chosen for its 19 V range (covers 12 V), a
+     pin-selected clamp that matches all three voltages, and a hand-solderable SOIC-8.
+- **Known side effects:** the eFuses are 1.7 mm tall, so the bottom-side height rule went from 1.3 to 1.75 mm.
+  FLT is not wired to the Pico (firmware detects a limited rail by its low ADC reading). D7's 21.5 V full-pulse clamp
+  is 0.5 V above the eFuse's 21 V maximum (realistic hot-plug spikes clamp at 16–17 V); SMBJ12A is noted as an option.
+- **Tooling lesson:** the footprint was created by script (`MakeDDA8`) and came out with its pads 50 000 mil from
+  its reference point. Placing it sent the four parts 2.5 m off the board, and their designators to the edge of
+  Altium's coordinate range, where text boxes turn into garbage. `FixDDA` now moves the pads onto the reference
+  point and brings the designators back. `pcb_check.py` caught all of it ("not at table position", "2536 mm from its
+  part") before anything was saved as final.
+- **Docs changed with it:** new section 2.9 (limiter) and 2.10 (USB budget), a TVS check per diode, a per-line
+  back-feed table that replaces the blanket "≤ 71 µA" claim, a "Target design requirement" list for the port, a
+  bench procedure (docs/07), and SVG copies of the Mermaid diagrams (the GitHub mobile app shows Mermaid as code).
+- **Verified:** `verify_gen.py` 115/115, errors = 0; `verify_sheet1.py` 46/46; `pcb_check.py` errors = 0 (161 parts,
+  161 designators); DRC = 369 un-routed + 16 net antennae + 8 SOIC mask slivers, nothing else.
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.

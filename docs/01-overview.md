@@ -8,6 +8,10 @@ The Squid Debugger does all of this through **one cable**: the Squid Standard De
 
 ## Block diagram
 
+![Squid Debugger block diagram](img/overview-block.svg)
+
+<details><summary>Diagram source (Mermaid)</summary>
+
 ```mermaid
 flowchart LR
     PC[PC / laptop] -- USB --> PICO[Raspberry Pi Pico<br/>RP2040]
@@ -16,11 +20,13 @@ flowchart LR
     PICO -- SPI --> MCP[MCP2515<br/>CAN controller] --> TCAN[TCAN330<br/>transceiver] -- CAN_H/L --> J1
     PSU[Bench PSU<br/>banana jacks TP1-TP5] --> PWR
     PC -- VBUS 5 V --> LIM[MIC2544<br/>0.4 A limit] --> BUCK[AP63203<br/>3.3 V buck] --> PWR
-    LIM --> PWR[Power path<br/>4x TPS2121]
+    LIM --> PWR[Power path<br/>4x eFuse 0.9 A<br/>4x TPS2121]
     PICO -- EN / ADC / status --> PWR
     PWR -- 3V3 / 5V / 5V_RF / 12V --> J1[J1 Squid Standard<br/>Debug Port]
     J1 --> TGT[Target board]
 ```
+
+</details>
 
 ## The Squid Standard Debug Port (J1)
 
@@ -44,6 +50,21 @@ OR the J1 rails in at its *lowest* priority, the way OBC Rev2 already muxes USB 
 accepts power back. The earlier "v2" idea of feeding stack power in through J1 was dropped: the mux input and
 output would become the same net and oscillate.
 
+### Target design requirement
+
+Every board that carries a Squid Standard Debug Port must follow these rules. They are what make it safe to plug the
+debugger into a board that is also powered by the satellite stack.
+
+1. **J1 power pins are inputs on the target.** A target never drives power out on J1 pins 1–4.
+2. **OR them in at the lowest priority.** If the target has another supply (stack, its own USB), J1 power goes through
+   the target's power mux or an ideal diode, below the stack supply.
+3. **Leave unused rails unconnected** on the target. Do not tie two J1 rails together.
+4. **Budget ≤ 0.8 A per rail from the debugger.** The debugger limits each bench rail at 0.90 A typical (0.83 A
+   minimum), and USB power at 0.4 A total. J1 contacts are rated 1 A.
+5. **Signal pins must tolerate an unpowered debugger.** Do not drive SWDIO or the UART line high continuously
+   when no debugger is attached to them (see the back-feed table in [2.8](02-power-architecture.md)).
+6. **CAN termination stays on the stack**, not on the target's debug port.
+
 ## The four rails
 
 These match the SquidSat EPS rails (2S Li-ion → regulators):
@@ -54,6 +75,9 @@ These match the SquidSat EPS rails (2S Li-ion → regulators):
 | 5 V | bench PSU (preferred), else USB VBUS | |
 | 5 V RF | bench PSU only | low-noise LDO rail on the real EPS; USB is too noisy |
 | 12 V | bench PSU only | boost rail on the real EPS; USB can't make it |
+
+Each bench rail has its own **0.9 A current limiter** (TPS259621 eFuse, U14–U17) ahead of its TPS2121, so no J1
+contact can be loaded past its 1 A rating. USB power is limited to 0.4 A in total by U4.
 
 ## Pico pin map (V1)
 
@@ -89,8 +113,9 @@ These match the SquidSat EPS rails (2S Li-ion → regulators):
 | 3 | `DebugBoardPowerControl.SchDoc` | Rail enable (FETs + DIP), rail monitors (ADC dividers, mux status) |
 | 4 | `DebugBoard3V3Mux.SchDoc` | 3V3 power mux U3 (PSU vs. USB → +3V3_TGT) |
 | 5 | `DebugBoard5VMux.SchDoc` | 5V power mux U5 (PSU vs. VBUS → +5V_TGT) |
+| 6 | `DebugBoardLimiters.SchDoc` | PSU current limit: one TPS259621 eFuse per bench rail (U14–U17), `+x_PSU` → `+x_LIM` |
 
-All five sheets are drawn in a **wired** style: real wires from the pins, parts hanging off the lines (caps under rails,
+All six sheets are drawn in a **wired** style: real wires from the pins, parts hanging off the lines (caps under rails,
 divider stacks rail → R → node → R → GND), power-port symbols for rails, ports only for signals that cross sheets,
 and small net labels on internal nodes (OV1_x, PR1_x, ILM_x …) so each node can be probed by name.
 

@@ -4,6 +4,7 @@ These are search links, so they always resolve. Pick the exact match on the resu
 | Function | MPN | Qty | DigiKey | Octopart |
 |---|---|---|---|---|
 | Power mux (U3/U5/U7/U8) | TPS2121RUXR | 4 | [DK](https://www.digikey.com/en/products/result?keywords=TPS2121RUXR) | [OP](https://octopart.com/search?q=TPS2121RUXR) |
+| Bench-rail eFuse, 0.9 A limit (U14–U17) | TPS259621DDAR | 4 | [DK](https://www.digikey.com/en/products/result?keywords=TPS259621DDAR) | [OP](https://octopart.com/search?q=TPS259621DDAR) |
 | USB current limit (U4) | MIC2544-1YMM-TR | 1 | [DK](https://www.digikey.com/en/products/result?keywords=MIC2544-1YMM-TR) | [OP](https://octopart.com/search?q=MIC2544-1YMM-TR) |
 | AUX LDO 3.3 V | TLV70433DBVR | 1 | [DK](https://www.digikey.com/en/products/result?keywords=TLV70433DBVR) | [OP](https://octopart.com/search?q=TLV70433DBVR) |
 | 2.5 V reference (B grade, SOT-23) | LM4040BIM3-2.5/NOPB | 1 | [DK](https://www.digikey.com/en/products/result?keywords=LM4040BIM3-2.5%2FNOPB) | [OP](https://octopart.com/search?q=LM4040BIM3-2.5%2FNOPB) |

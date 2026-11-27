@@ -16,6 +16,9 @@ W, H, CORNER = 61.0, 100.0 + UP, 5.0
 ORIGIN_MIL = (11558.4886, 3895.504)          # board lower-left corner in the PcbDoc (absolute mils)
 PCB_PATH = r'C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\DebugBoard.PcbDoc'
 DUMP_PATH = os.path.join(HERE, 'altium', 'pcb_dump.txt')
+DDA_NAME = 'SOIC127P600X170-9N'               # TPS259621 footprint, made by the MakeDDA8 script
+LOG = os.path.join(HERE, 'altium', 'make_dda8.log')
+DDA_LIB = os.path.join(os.path.dirname(PCB_PATH), 'Libraries', 'SquidDebugger_V1', 'PcbLib', DDA_NAME + '.PcbLib')
 V0_PATH = os.path.abspath(os.path.join(ROOT, '_backup', 'DebugBoard_V0.PcbDoc'))   # git show 009cc9b:hardware/DebugBoard.PcbDoc
 GAP = 0.25                                   # minimum space between two parts' outline boxes
 TXT_H, TXT_W = 0.8, 0.15                     # designator height and stroke width (fab minimum for legible silk)
@@ -53,6 +56,9 @@ def load_dump():
         box = (-10.5, -25.5, 10.5, 25.5) if d == 'U1' else loc(c['box'])     # Pico: body only (its box includes drawing extras)
         GEO[d] = dict(pattern=c['pattern'], box=box, nets={p[0]: p[3] for p in c['pads']},
                       pads=[(p[0], 'M' if p[1].startswith('Multi') else 'S', loc(p[2]), p[4]) for p in c['pads']])
+        if c['pattern'] == DDA_NAME:         # script-made footprint: its reference point is off the part, so box it by its pads
+            rs = [q[2] for q in GEO[d]['pads']]
+            GEO[d]['box'] = (min(r[0] for r in rs) - 0.25, min(r[1] for r in rs) - 0.3, max(r[2] for r in rs) + 0.25, max(r[3] for r in rs) + 0.3)
 load_dump()
 def net(des, pin): return GEO[des]['nets'].get(str(pin), '')
 def signal_net(des): return next(n for n in GEO[des]['nets'].values() if n and n != 'GND')
@@ -133,6 +139,19 @@ for i in range(4):
 for i, d in enumerate(('C42', 'C43', 'C44')): put(d, 25.0 if i != 1 else 32.0, 77.0 + UP + (2.9 if i == 2 else 0), 0, 'B')
 for i in range(8): put(f'R{50+i}', 25.0 if i < 4 else 32.0, 83.2 + UP + 2.9 * (i % 4), 0, 'B')
 put('R57', 32.0, 79.9 + UP, 0, 'B')
+
+# PSU current limiters (TPS259621 eFuse + 100 nF + EN divider + limit resistor, + clamp-select resistor on the 5 V
+# rails): bottom side, each next to its bench jack, on the way from the jack to its TPS2121.
+put('U14', 9.0, 78.5, 0, 'B'); put('C45', 16.0, 78.5, 90, 'B')
+for i, d in enumerate(('R58', 'R59', 'R60')): put(d, 4.0 + 4.2 * i, 73.9, 0, 'B')
+put('U15', 52.0, 78.5, 0, 'B'); put('C46', 45.0, 78.5, 90, 'B')
+for i, d in enumerate(('R61', 'R62', 'R63')): put(d, 44.6 + 4.2 * i, 73.9, 0, 'B')
+put('R64', 58.0, 78.5, 90, 'B')
+put('U17', 16.5, 31.0, 90, 'B')
+for i, d in enumerate(('R69', 'R70', 'R71', 'C48')): put(d, 21.6, 28.2 + 2.8 * i, 0, 'B')
+put('U16', 44.5, 31.0, 90, 'B')
+for i, d in enumerate(('R65', 'R66', 'R67', 'R68', 'C47')): put(d, 39.4, 26.8 + 2.8 * i, 0, 'B')
+NO_MODEL = {'U14', 'U15', 'U16', 'U17'}      # no STEP model yet for the TPS259621 (DDA package): open item
 
 LOGO = (30.5, 49.3, 0); LOGO_BOX = (23.7, 44.0, 37.3, 54.6)                       # SDSL logo: bottom side, centre
 LABELS = {'+3.3V': (1.5, 76.6), '+5V': (49.6, 76.6), '+12V': (2.0, 26.3), '+5V RF': (47.6, 26.3), 'GND': (28.2, 30.25)}       # GND sits directly under its jack
@@ -323,6 +342,9 @@ def pas(path):
          f'  T.Size := MilsToCoord({TXT_H} / 0.0254); T.Width := MilsToCoord({TXT_W} / 0.0254); T.Rotation := Rot;',
          '  T.EndModify;', '  T.BeginModify;',
          '  Rc := T.BoundingRectangleForSelection;',
+         '  If Rc.Right - Rc.Left > MilsToCoord(5000) Then   { a text that came from a far-off footprint has a corrupt box: move it by its anchor; the second pass centres it }',
+         '    T.MoveByXY(MilsToCoord(X0 + X / 0.0254) - T.XLocation, MilsToCoord(Y0 + Y / 0.0254) - T.YLocation)',
+         '  Else',
          '  T.MoveByXY(MilsToCoord(X0 + X / 0.0254) - (Rc.Left + Rc.Right) Div 2, MilsToCoord(Y0 + Y / 0.0254) - (Rc.Bottom + Rc.Top) Div 2);',
          '  T.EndModify; T.GraphicallyInvalidate;', 'End;', '',
          'Procedure PutLogo(X, Y, Rot : Double; Bottom : Boolean);', 'Var It : IPCB_BoardIterator; C : IPCB_Component;', 'Begin',
@@ -535,6 +557,112 @@ def pas(path):
          '  C.AddPCBObject(B);',
          "  Sizes := Sizes + Des + ' ' + FloatToStr(Round(CoordToMils(Rb.Right - Rb.Left) * 2.54) / 100) + 'x' + FloatToStr(Round(CoordToMils(Rb.Top - Rb.Bottom) * 2.54) / 100) + '  ';",
          '  Added := Added + 1;', 'End;', '',
+         'Procedure Trace(S : String);   { progress log for MakeDDA8: tools/altium/make_dda8.log }', 'Var L : TStringList;', 'Begin',
+         '  L := TStringList.Create;',
+         f"  If FileExists('{LOG}') Then L.LoadFromFile('{LOG}');",
+         f"  L.Add(S); L.SaveToFile('{LOG}'); L.Free;", 'End;', '',
+         'Procedure LibPad(Comp : IPCB_LibComponent; Lib : IPCB_Library; Nm : String; X, Y, W, H : Double);', 'Var Pd : IPCB_Pad; Ox, Oy : Integer;', 'Begin',
+         "  Trace('pad ' + Nm + ' a');",
+         '  Ox := Lib.Board.XOrigin; Oy := Lib.Board.YOrigin;',
+         "  Trace('pad b origin ' + IntToStr(Ox) + ' ' + IntToStr(Oy));",
+         '  Pd := PCBServer.PCBObjectFactory(ePadObject, eNoDimension, eCreate_Default);',
+         "  Trace('pad c');",
+         '  Pd.X := Ox + MilsToCoord(X / 0.0254); Pd.Y := Oy + MilsToCoord(Y / 0.0254);',
+         '  Pd.TopXSize := MilsToCoord(W / 0.0254); Pd.TopYSize := MilsToCoord(H / 0.0254);',
+         "  Trace('pad d');",
+         '  Pd.HoleSize := 0; Pd.Layer := eTopLayer; Pd.Name := Nm;',
+         "  Trace('pad e');",
+         '  Pd.TopShape := eRectangular;',
+         "  Trace('pad f');",
+         '  Comp.AddPCBObject(Pd);',
+         "  Trace('pad g');",
+         "  Trace('pad h');", 'End;', '',
+         'Procedure LibLine(Comp : IPCB_LibComponent; Lib : IPCB_Library; X1, Y1, X2, Y2 : Double);', 'Var Tr : IPCB_Track;', 'Begin',
+         '  Tr := PCBServer.PCBObjectFactory(eTrackObject, eNoDimension, eCreate_Default);',
+         '  Tr.Layer := eTopOverlay; Tr.Width := MilsToCoord(0.15 / 0.0254);',
+         '  Tr.x1 := Lib.Board.XOrigin + MilsToCoord(X1 / 0.0254); Tr.y1 := Lib.Board.YOrigin + MilsToCoord(Y1 / 0.0254);',
+         '  Tr.x2 := Lib.Board.XOrigin + MilsToCoord(X2 / 0.0254); Tr.y2 := Lib.Board.YOrigin + MilsToCoord(Y2 / 0.0254);',
+         '  Comp.AddPCBObject(Tr);', 'End;', '',
+         'Procedure MakeDDA8;',
+         '{ Footprint for the TPS259621 (TI DDA, HSOIC-8 with thermal pad): 8 pads 1.55 x 0.6 mm on 1.27 mm pitch, rows 5.4 mm',
+         '  apart, thermal pad 2.4 x 3.1 mm. The thermal pad is named 1 as well, because pin 1 is GND. Check the pad sizes',
+         '  against TI land pattern DDA0008 before ordering boards. Open the library document first, then run this. }',
+         'Var Lib : IPCB_Library; Comp : IPCB_LibComponent; I : Integer; Old : TInterfaceList; G : IPCB_GroupIterator; O : IPCB_Primitive;', 'Begin',
+         "  Trace('start');",
+         '  Lib := PCBServer.GetCurrentPCBLibrary;',
+         "  If Lib = Nil Then Begin ShowMessage('Open the footprint library document first'); Exit; End;",
+         "  Trace('lib ok');",
+         f"  Comp := Lib.GetComponentByName('{DDA_NAME}');",
+         "  Trace('lookup done');",
+         '  If Comp = Nil Then Begin',
+         f"    Comp := PCBServer.CreatePCBLibComp; Comp.Name := '{DDA_NAME}'; Lib.RegisterComponent(Comp);",
+         '  End;',
+         "  Trace('registered');",
+         '  Old := TInterfaceList.Create;',
+         '  G := Comp.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(ePadObject, eTrackObject, eArcObject));',
+         '  O := G.FirstPCBObject;',
+         '  While O <> Nil Do Begin Old.Add(O); O := G.NextPCBObject; End;',
+         '  Comp.GroupIterator_Destroy(G);',
+         '  For I := 0 To Old.Count - 1 Do Comp.RemovePCBObject(Old.Items[I]);',
+         "  Trace('cleared ' + IntToStr(Old.Count));",
+         '  Old.Free;',
+         '  PCBServer.PreProcess;',
+         '  For I := 0 To 3 Do Begin',
+         '    LibPad(Comp, Lib, IntToStr(I + 1), -2.7, 1.905 - 1.27 * I, 1.55, 0.6);',
+         '    LibPad(Comp, Lib, IntToStr(8 - I), 2.7, 1.905 - 1.27 * I, 1.55, 0.6);',
+         '  End;',
+         "  Trace('pads');",
+         "  LibPad(Comp, Lib, '1', 0, 0, 2.4, 3.1);",
+         '  LibLine(Comp, Lib, -1.95, 2.6, 1.95, 2.6); LibLine(Comp, Lib, -1.95, -2.6, 1.95, -2.6);',
+         '  LibLine(Comp, Lib, -3.6, 2.6, -2.2, 2.6);   { pin-1 mark: the top silk line runs on over pin 1 }',
+         "  Trace('silk');",
+         '  PCBServer.PostProcess;',
+         "  Trace('registered on board');",
+         '  Lib.CurrentComponent := Comp;',
+         '  Lib.Board.ViewManager_FullUpdate;',
+         "  Trace('done');",
+         "  ShowMessage('Footprint created. Save the library (File > Save).');", 'End;', '',
+         'Procedure FixDDA;   { the script-made eFuse footprint has its pads far from its reference point: move pads and silk onto it }',
+         'Var It : IPCB_BoardIterator; C : IPCB_Component; G : IPCB_GroupIterator; O : IPCB_Primitive; Lst : TInterfaceList; I, N : Integer; L, R, Bt, Tp, Dx, Dy : Integer; Rc : TCoordRect;', 'Begin'] + get_board + [
+         '  N := 0; PCBServer.PreProcess;',
+         '  It := Board.BoardIterator_Create; It.AddFilter_ObjectSet(MkSet(eComponentObject)); It.AddFilter_LayerSet(AllLayers); It.AddFilter_Method(eProcessAll);',
+         '  C := It.FirstPCBObject;',
+         '  While C <> Nil Do Begin',
+         f"    If C.Pattern = '{DDA_NAME}' Then Begin",
+         '      Lst := TInterfaceList.Create; L := 2147483647; Bt := 2147483647; R := -2147483647; Tp := -2147483647;',
+         '      G := C.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(ePadObject, eTrackObject));',
+         '      O := G.FirstPCBObject;',
+         '      While O <> Nil Do Begin',
+         '        Lst.Add(O);',
+         '        If O.ObjectId = ePadObject Then Begin',
+         '          Rc := O.BoundingRectangle;',
+         '          If Rc.Left < L Then L := Rc.Left; If Rc.Right > R Then R := Rc.Right;',
+         '          If Rc.Bottom < Bt Then Bt := Rc.Bottom; If Rc.Top > Tp Then Tp := Rc.Top;',
+         '        End;',
+         '        O := G.NextPCBObject;',
+         '      End;',
+         '      C.GroupIterator_Destroy(G);',
+         '      Dx := C.x - (L Div 2 + R Div 2); Dy := C.y - (Bt Div 2 + Tp Div 2);',
+         '      If (Abs(Dx) > MilsToCoord(1)) Or (Abs(Dy) > MilsToCoord(1)) Then Begin',
+         '        For I := 0 To Lst.Count - 1 Do Begin',
+         '          O := Lst.Items[I]; O.BeginModify; O.MoveByXY(Dx, Dy); O.EndModify; O.GraphicallyInvalidate;',
+         '        End;',
+         '        N := N + 1;',
+         '      End;',
+         '      Lst.Free;',
+         '      For I := 1 To 3 Do Begin   { a designator that ran off to the coordinate limit has a corrupt box: bring it back to its part by its anchor }',
+         '        C.Name.BeginModify; C.Name.MoveByXY(C.x - C.Name.XLocation, C.y + MilsToCoord(150) - C.Name.YLocation); C.Name.EndModify;',
+         '        C.Comment.BeginModify; C.Comment.MoveByXY(C.x - C.Comment.XLocation, C.y - C.Comment.YLocation); C.Comment.EndModify;',
+         '      End;',
+         '    End;',
+         '    C := It.NextPCBObject;',
+         '  End;',
+         '  Board.BoardIterator_Destroy(It);',
+         '  PCBServer.PostProcess;',
+         "  ShowMessage('FixDDA: recentred ' + IntToStr(N) + ' footprints');", 'End;', '',
+         'Procedure EndCommand;   { if a script stopped half-way, Altium thinks a command is still active and will not save }', 'Begin',
+         '  PCBServer.PostProcess; PCBServer.PostProcess; PCBServer.PostProcess;',
+         "  ShowMessage('Open commands closed');", 'End;', '',
          'Procedure NoRooms;   { the ECO adds a placement room off the board; nothing is meant to be confined to it }',
          'Var It : IPCB_BoardIterator; O : IPCB_Rule; Lst : TInterfaceList; I : Integer;', 'Begin',
          '  Lst := TInterfaceList.Create; It := Board.BoardIterator_Create;',
@@ -594,6 +722,14 @@ def pas(path):
          '  Rb := B.BoundingRectangle;',
          "  Result := FloatToStr(Round(-CoordToMils(Rb.Top) * 2.54) / 100) + '|' + FloatToStr(Round(-CoordToMils(Rb.Bottom) * 2.54) / 100);",
          '  Board.RemovePCBObject(B);', 'End;', '',
+         'Function ProbeT(D : String) : String;', 'Var C : IPCB_Component; T : IPCB_Text;', 'Begin',
+         '  C := Board.GetPcbComponentByRefDes(D); T := C.Name;',
+         "  Result := D + ' loc ' + M(T.XLocation, X0) + ',' + M(T.YLocation, Y0) + ' box ' + R2S(T.BoundingRectangle) + ' sel ' + R2S(T.BoundingRectangleForSelection) + ' size ' + M(T.Size, 0) + ' w ' + M(T.Width, 0) + ' rot ' + FloatToStr(T.Rotation) + ' frameW ' + M(T.MultilineTextWidth, 0) + ' frameH ' + M(T.MultilineTextHeight, 0) + ' ttf ' + IntToStr(Ord(T.UseTTFonts)) + ' mirror ' + IntToStr(Ord(T.MirrorFlag)) + ' auto ' + IntToStr(Ord(C.NameAutoPosition)) + #13#10;", 'End;', '',
+         'Procedure ProbeN;   { read-only: designator text position and box of two eFuses and one normal part -> tools/altium/probe_n.txt }', 'Var S : TStringList; C : IPCB_Component; T : IPCB_Text;', 'Begin'] + get_board + [
+         '  S := TStringList.Create;',
+         "  S.Add(ProbeT('U14')); S.Add(ProbeT('U15')); S.Add(ProbeT('R58'));",
+         f"  S.SaveToFile('{os.path.join(HERE, 'altium', 'probe_n.txt')}'); S.Free;",
+         "  ShowMessage('ProbeN written');", 'End;', '',
          'Procedure DumpV1;',
          'Var It : IPCB_BoardIterator; C : IPCB_Component; G : IPCB_GroupIterator; Pd : IPCB_Pad; Vi : IPCB_Via; T : IPCB_Text; S : TStringList; N : String; Nb : Integer; Bd : IPCB_Primitive;',
          'Begin'] + get_board + [
@@ -611,6 +747,14 @@ def pas(path):
          "      S.Add('P|' + C.Name.Text + '|' + Pd.Name + '|' + Layer2String(Pd.Layer) + '|' + M(Pd.x, X0) + '|' + M(Pd.y, Y0) + '|' + M(Pd.HoleSize, 0) + '|' + R2S(Pd.BoundingRectangle) + '|' + N);",
          '      Pd := G.NextPCBObject;', '    End;',
          '    C.GroupIterator_Destroy(G);',
+         '    If (C.BoundingRectangleNoNameComment.Top - C.BoundingRectangleNoNameComment.Bottom > MilsToCoord(2400)) Or (C.BoundingRectangleNoNameComment.Right - C.BoundingRectangleNoNameComment.Left > MilsToCoord(2400)) Then Begin',
+         '      G := C.GroupIterator_Create;   { a footprint bigger than 60 mm has a stray primitive: list them all }',
+         '      Bd := G.FirstPCBObject;',
+         '      While Bd <> Nil Do Begin',
+         "        S.Add('X|' + C.Name.Text + '|' + Bd.ObjectIDString + '|' + Layer2String(Bd.Layer) + '|' + R2S(Bd.BoundingRectangle));",
+         '        Bd := G.NextPCBObject;', '      End;',
+         '      C.GroupIterator_Destroy(G);',
+         '    End;',
          '    G := C.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(eComponentBodyObject));',
          '    Nb := 0; Bd := G.FirstPCBObject;',
          '    While Bd <> Nil Do Begin Nb := Nb + 1; Bd := G.NextPCBObject; End;',

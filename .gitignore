@@ -31,3 +31,6 @@ desktop.ini
 ### Claude Code local settings ###
 .claude/settings.local.json
 _backup/
+### Script scratch output ###
+tools/altium/probe_n.txt
+tools/altium/make_dda8.log

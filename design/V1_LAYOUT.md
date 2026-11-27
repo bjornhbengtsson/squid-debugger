@@ -39,7 +39,7 @@ Planning view with pads and designators, both sides: [`V1_placement.png`](V1_pla
 | C3 | J1 (JST-GH 12) at the bottom edge centre, cable leaves the board | V0 |
 | C4 | Pico USB connector at the top edge centre | V0 |
 | C5 | Pico soldered flat: nothing on the top side under it; its pin rows are through-pads, so only the strip between them is free on the bottom | Pico footprint |
-| C6 | Bottom side: 0805 / SOT-23 only (≤ 1.3 mm tall) so the board still sits on short standoffs | flight-stack spacing unknown, so stay low |
+| C6 | Bottom side: 0805 / SOT-23 and the four SOIC-8 eFuses (≤ 1.75 mm tall), so the board still sits on short standoffs. The rule was ≤ 1.3 mm before the eFuses were added. | flight-stack spacing unknown, so stay low |
 | C7 | Parts ≥ 0.5 mm from the edge, ≥ 0.25 mm between outline boxes | fab / assembly |
 | C8 | Bench jacks, DIP switch SW1, headers and LEDs on the top side | usability |
 | C9 | 4 layers, 1.6 mm, standard fab stack | cost |
@@ -124,6 +124,7 @@ Positions come from Altium's real footprint geometry, not estimates. Every part 
 | USB buck 5 V → 3.3 V | top left | U13, L1, C18–C22 |
 | VBUS current limit | top right, at Pico pin 40 (VBUS) | U4, C4, C23, R3, R5, D1 |
 | Bench jacks + TVS | four quadrants; each jack moved 3 mm outward so its TVS fits beside it | TP1–TP4, D4–D7 |
+| PSU current limiters (eFuses) | bottom side, each beside its own jack, on the way from the jack to its TPS2121 | 3V3: U14, C45, R58–R60 · 5V: U15, C46, R61–R64 · 5V RF: U16, C47, R65–R68 · 12V: U17, C48, R69–R71 |
 | GND jack | on the centre line, between SW1 and the CAN controller (as V0) | TP5 |
 | UART | left of the Pico, inside V0's "TX RX" frame | P2, D2, D3, R6, R7; R11, R12 beside it |
 | 3V3 mux | left, below UART; dividers underneath | U3, C6, C26, C30–C32, R22 / bottom: R14–R21, D11, D12 |
@@ -148,7 +149,7 @@ holes). The UART group stayed inside its V0 silk frame.
 
 ### Silkscreen
 
-- All 139 designators: 0.8 mm tall, 0.15 mm stroke, next to their part (never more than 3 mm away).
+- All 161 designators: 0.8 mm tall, 0.15 mm stroke, next to their part (never more than 3 mm away).
 - None is on a pad, hole or via, under the Pico, outside the board, or on another designator. `pcb_check.py` verifies this
   from Altium's own text boxes.
 - Jack labels (+3.3V, +5V, +12V, +5V RF, GND) are 1.5 mm and sit below or beside their jack. "TX RX" is 1.3 mm inside its frame.
@@ -161,7 +162,7 @@ holes). The UART group stayed inside its V0 silk frame.
 
 | Rule | Count | Verdict |
 |---|---:|---|
-| Un-routed net | 320 | expected: nothing is routed |
+| Un-routed net | 369 | expected: nothing is routed (320 before the limiter stage was added) |
 | Clearance, short circuit, component clearance, hole-to-hole, silk-to-mask, silk-to-silk, room | 0 | clean |
 | Hole size, minimum annular ring | 0 | clean after enlarging the TPS2121 vias (below) |
 | Net antennae | 16 | the TPS2121 footprint's own 16 vias; clears when they are connected |
@@ -184,7 +185,7 @@ Found and fixed during this pass:
 
 ### Power distribution
 
-- Each rail runs one way: jack → TVS (beside the jack) → input cap → TPS2121 → output caps → J1.
+- Each rail runs one way: jack → TVS (beside the jack) → eFuse (bottom side, under the jack area) → input cap → TPS2121 → output caps → J1.
 - **J1 pin 1 is on the right.** Pins 1–4 (+3V3, +5V, +12V, +5V RF) are the right half; SWD is the left half.
   So +5V_TGT and +5V_RF_TGT come straight down the right side. **+3V3_TGT and +12V_TGT start on the left and must
   cross** to J1's right half. Run both on the bottom layer in the free channel under SW1 (y ≈ 13–19 mm).
@@ -196,7 +197,8 @@ Found and fixed during this pass:
 
 | Part | Worst-case loss | Rise | Note |
 |---|---:|---:|---|
-| TPS2121 (each) | 1.24² A × 56 mΩ ≈ 86 mW | ≈ 5–8 °C | normal copper is enough |
+| TPS2121 (each) | 0.9² A × 56 mΩ ≈ 45 mW | ≈ 3–5 °C | normal copper is enough |
+| TPS259621 eFuse (each) | 0.9² A × 89 mΩ ≈ 72 mW normally; ≈ 11 W into a short on 12 V until it shuts down (157 °C) and retries every 95 ms | ≈ 5 °C normally | put vias under the thermal pad to the GND planes |
 | AP63203 buck | ≈ 0.25 W | ≈ 25–30 °C | input is capped at 0.4 A by U4; give its GND pin a pour with vias to L2 |
 | MIC2544 | 0.4² A × 120 mΩ ≈ 19 mW | negligible | |
 
@@ -217,3 +219,9 @@ Found and fixed during this pass:
 4. **Q1–Q4 footprint** `SOT103P240X110-3N`: its PcbLib is now part of the project, so imports find it. The compiled
    `SquidDebugger_V1.IntLib` still lacks it; recompile the LibPkg when convenient.
 5. Card envelope and hole pattern of the flight stack (now 61 × 110, holes 51 × 100): confirm with Alex.
+6. **eFuse footprint** `SOIC127P600X170-9N` (script-made, `MakeDDA8`): check pad and thermal-pad sizes against TI land
+   pattern DDA0008. In the library its pads are 50 000 mil from its reference point; on the board `FixDDA` has moved
+   them onto it. Set the reference point in the library (Edit » Set Reference » Center) so an update from the library
+   does not undo that; if it does, run `FixDDA` and then `PlaceV1` again.
+7. **eFuse 3D model:** none yet (U14–U17 are exempt in `pcb_check.py` through `NO_MODEL`).
+8. **Bottom-side height** is now 1.7 mm (eFuses): confirm against the standoff height.

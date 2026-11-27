@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 400" width="1040" height="400" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Squid Debugger block diagram">
+<title>Squid Debugger block diagram</title>
+<rect width="1040" height="400" fill="#ffffff"/>
+<rect x="20" y="150" width="120" height="50" rx="6" fill="#f1f3f4" stroke="#3c4043" stroke-width="1.3"/>
+<text x="80.0" y="179.0" text-anchor="middle" font-size="13" font-weight="bold">PC / laptop</text>
+<rect x="20" y="300" width="120" height="60" rx="6" fill="#fdf1d6" stroke="#3c4043" stroke-width="1.3"/>
+<text x="80.0" y="318.0" text-anchor="middle" font-size="13" font-weight="bold">Bench PSU</text>
+<text x="80.0" y="334.0" text-anchor="middle" font-size="13">banana jacks</text>
+<text x="80.0" y="350.0" text-anchor="middle" font-size="13">TP1-TP5</text>
+<rect x="200" y="60" width="140" height="70" rx="6" fill="#e8f0fe" stroke="#3c4043" stroke-width="1.3"/>
+<text x="270.0" y="91.0" text-anchor="middle" font-size="13" font-weight="bold">Raspberry Pi Pico</text>
+<text x="270.0" y="107.0" text-anchor="middle" font-size="13">RP2040</text>
+<rect x="200" y="215" width="140" height="50" rx="6" fill="#fdf1d6" stroke="#3c4043" stroke-width="1.3"/>
+<text x="270.0" y="236.0" text-anchor="middle" font-size="13" font-weight="bold">MIC2544</text>
+<text x="270.0" y="252.0" text-anchor="middle" font-size="13">0.4 A limit</text>
+<rect x="410" y="10" width="130" height="40" rx="6" fill="#f3e8fd" stroke="#3c4043" stroke-width="1.3"/>
+<text x="475.0" y="34.0" text-anchor="middle" font-size="13" font-weight="bold">P2 UART header</text>
+<rect x="410" y="75" width="130" height="50" rx="6" fill="#e8f0fe" stroke="#3c4043" stroke-width="1.3"/>
+<text x="475.0" y="96.0" text-anchor="middle" font-size="13" font-weight="bold">MCP2515</text>
+<text x="475.0" y="112.0" text-anchor="middle" font-size="13">CAN controller</text>
+<rect x="590" y="75" width="120" height="50" rx="6" fill="#e8f0fe" stroke="#3c4043" stroke-width="1.3"/>
+<text x="650.0" y="96.0" text-anchor="middle" font-size="13" font-weight="bold">TCAN330</text>
+<text x="650.0" y="112.0" text-anchor="middle" font-size="13">transceiver</text>
+<rect x="410" y="215" width="130" height="50" rx="6" fill="#fdf1d6" stroke="#3c4043" stroke-width="1.3"/>
+<text x="475.0" y="236.0" text-anchor="middle" font-size="13" font-weight="bold">AP63203</text>
+<text x="475.0" y="252.0" text-anchor="middle" font-size="13">3.3 V buck</text>
+<rect x="590" y="290" width="130" height="70" rx="6" fill="#fdf1d6" stroke="#3c4043" stroke-width="1.3"/>
+<text x="655.0" y="313.0" text-anchor="middle" font-size="13" font-weight="bold">Power path</text>
+<text x="655.0" y="329.0" text-anchor="middle" font-size="13">4x eFuse 0.9 A</text>
+<text x="655.0" y="345.0" text-anchor="middle" font-size="13">4x TPS2121</text>
+<rect x="780" y="140" width="120" height="80" rx="6" fill="#f3e8fd" stroke="#3c4043" stroke-width="1.3"/>
+<text x="840.0" y="168.0" text-anchor="middle" font-size="13" font-weight="bold">J1</text>
+<text x="840.0" y="184.0" text-anchor="middle" font-size="13">Squid Standard</text>
+<text x="840.0" y="200.0" text-anchor="middle" font-size="13">Debug Port</text>
+<rect x="940" y="155" width="85" height="50" rx="6" fill="#e6f4ea" stroke="#3c4043" stroke-width="1.3"/>
+<text x="982.5" y="176.0" text-anchor="middle" font-size="13" font-weight="bold">Target</text>
+<text x="982.5" y="192.0" text-anchor="middle" font-size="13">board</text>
+<path d="M140,165 L170,165 L170,95 L200,95" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="200.0,95.0 191.8,91.3 191.8,98.7" fill="#3c4043"/>
+<path d="M140,185 L170,185 L170,240 L200,240" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="200.0,240.0 191.8,236.3 191.8,243.7" fill="#3c4043"/>
+<path d="M340,75 L375,75 L375,30 L410,30" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="410.0,30.0 401.8,26.3 401.8,33.7" fill="#3c4043"/>
+<path d="M340,100 L410,100" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="410.0,100.0 401.8,96.3 401.8,103.7" fill="#3c4043"/>
+<path d="M540,100.0 L590,100.0" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="590.0,100.0 581.8,96.3 581.8,103.7" fill="#3c4043"/>
+<path d="M710,100 L745,100 L745,160 L780,160" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="780.0,160.0 771.8,156.3 771.8,163.7" fill="#3c4043"/>
+<path d="M340,120 L375,120 L375,180 L780,180" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="780.0,180.0 771.8,176.3 771.8,183.7" fill="#3c4043"/>
+<path d="M270,130 L270,200 L655,200 L655,290" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="655.0,290.0 658.7,281.8 651.3,281.8" fill="#3c4043"/>
+<path d="M340,240.0 L410,240.0" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="410.0,240.0 401.8,236.3 401.8,243.7" fill="#3c4043"/>
+<path d="M540,240 L620,240 L620,290" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="620.0,290.0 623.7,281.8 616.3,281.8" fill="#3c4043"/>
+<path d="M270,265 L270,310 L590,310" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="590.0,310.0 581.8,306.3 581.8,313.7" fill="#3c4043"/>
+<path d="M140,340 L590,340" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="590.0,340.0 581.8,336.3 581.8,343.7" fill="#3c4043"/>
+<path d="M720,325 L840,325 L840,220" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="840.0,220.0 836.3,228.2 843.7,228.2" fill="#3c4043"/>
+<path d="M900,180.0 L940,180.0" fill="none" stroke="#3c4043" stroke-width="1.4"/>
+<polygon points="940.0,180.0 931.8,176.3 931.8,183.7" fill="#3c4043"/>
+<rect x="157.8" y="124" width="24.3" height="14" fill="#ffffff"/><text x="170" y="135" text-anchor="middle" font-size="11" fill="#1a73e8">USB</text>
+<rect x="136.6" y="251" width="54.8" height="14" fill="#ffffff"/><text x="164" y="262" text-anchor="middle" font-size="11" fill="#1a73e8">VBUS 5 V</text>
+<rect x="359.8" y="11" width="30.4" height="14" fill="#ffffff"/><text x="375" y="22" text-anchor="middle" font-size="11" fill="#1a73e8">UART</text>
+<rect x="362.9" y="84.0" width="24.3" height="14" fill="#ffffff"/><text x="375.0" y="95.0" text-anchor="middle" font-size="11" fill="#1a73e8">SPI</text>
+<rect x="702.4" y="81" width="85.3" height="14" fill="#ffffff"/><text x="745" y="92" text-anchor="middle" font-size="11" fill="#1a73e8">CAN_H / CAN_L</text>
+<rect x="523.5" y="163" width="73.1" height="14" fill="#ffffff"/><text x="560" y="174" text-anchor="middle" font-size="11" fill="#1a73e8">SWD + reset</text>
+<rect x="405.1" y="183" width="109.7" height="14" fill="#ffffff"/><text x="460" y="194" text-anchor="middle" font-size="11" fill="#1a73e8">EN / ADC / status</text>
+<rect x="341.5" y="224.0" width="67.0" height="14" fill="#ffffff"/><text x="375.0" y="235.0" text-anchor="middle" font-size="11" fill="#1a73e8">+VBUS_PROT</text>
+<rect x="557.6" y="223" width="54.8" height="14" fill="#ffffff"/><text x="585" y="234" text-anchor="middle" font-size="11" fill="#1a73e8">+3V3_USB</text>
+<rect x="396.5" y="293" width="67.0" height="14" fill="#ffffff"/><text x="430" y="304" text-anchor="middle" font-size="11" fill="#1a73e8">+VBUS_PROT</text>
+<rect x="267.4" y="323" width="195.1" height="14" fill="#ffffff"/><text x="365" y="334" text-anchor="middle" font-size="11" fill="#1a73e8">+3V3 / +5V / +5V_RF / +12V _PSU</text>
+<rect x="719.9" y="334" width="140.2" height="14" fill="#ffffff"/><text x="790" y="345" text-anchor="middle" font-size="11" fill="#1a73e8">3V3 / 5V / 5V_RF / 12V</text>
+</svg>

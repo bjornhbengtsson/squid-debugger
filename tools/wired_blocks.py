@@ -28,6 +28,7 @@ def make(T, SPEC, blocks):
         else:
             U, CIN1, BAT, RO1T, RO1B, RILM, CSS, CO1, CO2 = d
         tag = SPEC[RILM][2]['1'].split('_', 1)[1]
+        sense = SPEC[RO1T][2]['1']          # dividers watch the jack side (x_PSU); IN1 itself is the limited rail (x_LIM)
         B = Block(None)
         P(B, U, '7', (0, 0))
         xl = -360 if dual else -230; xc = xl + 40
@@ -40,13 +41,13 @@ def make(T, SPEC, blocks):
             B.wire((0, -70), (-30, -70)); B.pwr('XREF_2V5', (-30, -70), 2)
             # divider stacks: rail -> R -> node -> R -> GND; node wired back to its pin
             B.wire((0, -30), (-265, -30), (-265, -200), (-300, -200))
-            P(B, RO1T, '2', (-300, -200), 1); B.pwr(in1, (-300, -160), 1)
+            P(B, RO1T, '2', (-300, -200), 1); B.pwr(sense, (-300, -160), 1)
             P(B, RO1B, '1', (-300, -200), 1); B.gnd((-300, -240))
             B.wire((0, -40), (-190, -40), (-190, -200), (-225, -200))
             P(B, RO2T, '2', (-225, -200), 1); B.pwr(in2, (-225, -160), 1)
             P(B, RO2B, '1', (-225, -200), 1); B.gnd((-225, -240))
             B.wire((0, -90), (-115, -90), (-115, -200), (-150, -200))
-            P(B, RT, '2', (-150, -200), 1); B.pwr(in1, (-150, -160), 1)
+            P(B, RT, '2', (-150, -200), 1); B.pwr(sense, (-150, -160), 1)
             P(B, RB, '1', (-150, -200), 1); B.gnd((-150, -240))
             B.wire((-115, -200), (-85, -200)); P(B, ZEN, '3', (-85, -200), 3); B.gnd((-85, -240))
             B.wire((-115, -150), (-80, -150)); P(B, RH, '1', (-80, -150), 2)
@@ -57,7 +58,7 @@ def make(T, SPEC, blocks):
             for y in (-10, -40, -70, -90):                  # IN2, OV2, CP2, PR1 unused -> GND
                 B.wire((0, y), (-20, y)); B.gnd((-20, y), 2)
             B.wire((0, -30), (-90, -30), (-90, -200), (-120, -200))
-            P(B, RO1T, '2', (-120, -200), 1); B.pwr(in1, (-120, -160), 1)
+            P(B, RO1T, '2', (-120, -200), 1); B.pwr(sense, (-120, -160), 1)
             P(B, RO1B, '1', (-120, -200), 1); B.gnd((-120, -240))
             B.wire((-90, -200), (-90, -270), (-40, -270))
         P(B, BAT, '1', (-40, -270), 0); B.wire((70, -270), (100, -270)); B.port(f'DIS_{tag}', (100, -270), False)
@@ -145,7 +146,30 @@ def make(T, SPEC, blocks):
             B.wire((40, y), (60, y)); B.port(pm['2'], (60, y), False)
         return B
 
-    return {'3V3 Power Mux': lambda: mux('3V3 Power Mux'), '5V Power Mux': lambda: mux('5V Power Mux'),
+    def limiters():
+        """One TPS259621 per bench rail: jack rail in on the left, limited rail out on the right."""
+        B = Block(None); ps = parts_of('PSU Current Limit')
+        starts = [k for k, p in enumerate(ps) if p[0] == 'EFUSE'] + [len(ps)]
+        for row, (a, b_) in enumerate(zip(starts, starts[1:])):
+            grp = [p[1] for p in ps[a:b_]]; U, CIN, RENT, RENB, RILM = grp[:5]; ROVC = grp[5] if len(grp) > 5 else None
+            pm = SPEC[U][2]; y = -row * 220
+            P(B, U, '4', (0, y))
+            B.wire((0, y), (-230, y), (-230, y + 20)); B.pwr(pm['4'], (-230, y + 20), 1)
+            VG(B, CIN, (-180, y))
+            B.wire((-110, y), (-110, y - 20)); P(B, RENT, '2', (-110, y - 60), 1); P(B, RENB, '1', (-110, y - 60), 1); B.gnd((-110, y - 100))
+            B.wire((0, y - 20), (-60, y - 20), (-60, y - 60), (-110, y - 60)); B.label(pm['3'], (-55, y - 20))
+            if pm.get('8') == 'GND': B.wire((0, y - 40), (-20, y - 40)); B.gnd((-20, y - 40), 2)
+            elif ROVC:
+                B.wire((0, y - 40), (-25, y - 40), (-25, y - 90)); P(B, ROVC, '1', (-25, y - 90), 1); B.gnd((-25, y - 130)); B.label(pm['8'], (-25, y - 80))
+            else: B.noerc((0, y - 40))
+            B.noerc((0, y - 60))                                   # dVdt open = fastest turn-on (the TPS2121 does the soft start)
+            B.wire((130, y), (250, y), (250, y + 20)); B.pwr(pm['5'], (250, y + 20), 1)
+            B.noerc((130, y - 10))                                 # FLT (open drain) not used
+            B.wire((130, y - 40), (200, y - 40)); P(B, RILM, '1', (200, y - 40), 1); B.gnd((200, y - 80)); B.label(pm['7'], (140, y - 40))
+            B.wire((130, y - 60), (150, y - 60), (150, y - 80)); B.gnd((150, y - 80))
+        return B
+
+    return {'PSU Current Limit': limiters, '3V3 Power Mux': lambda: mux('3V3 Power Mux'), '5V Power Mux': lambda: mux('5V Power Mux'),
             '5V RF Switch': lambda: mux('5V RF Switch'), '12V Switch': lambda: mux('12V Switch'),
             'Bench Inputs': inputs, 'AUX Supply & 2.5V Reference': aux,
             'Rail Enable': enable, 'Rail Monitors': monitors}
