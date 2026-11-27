@@ -49,6 +49,16 @@ Gotchas learned the hard way:
 - Moves must stay on the grid (multiples of 100 mil), or wires stop touching pins.
 - Empty `||` segments inside records are significant and must be preserved byte-for-byte.
 
+## PCB checks
+
+| Command | What it checks |
+|---|---|
+| `python tools/pcb_place.py` | Rebuilds the placement script and preview. Lists parts too close, designators with no room, 3D models not signed off. |
+| `python tools/pcb_check.py` | The real board (run `DumpV1` in Altium and save first): positions, spacing, designators, layer stack, 3D models seated and signed off. Expect `errors = 0`. |
+| `python tools/drc_summary.py` | Altium's DRC report, counted per rule. |
+
+Before adding or re-turning a 3D model, read the rule in `design/V1_LAYOUT.md` ("Guard against upside-down models").
+
 ## How sheet 1 is made
 
 `tools/gen_sheet1.py` redraws sheet 1 in the same wired style. Its input is `tools/templates/sheet1_source.SchDoc`,

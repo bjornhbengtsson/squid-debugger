@@ -150,6 +150,19 @@ STEP.update({d: ('GCM31CR71A226KE02K.stp', 0, 0, 0.0) for d in ('C31', 'C32', 'C
 STEP.update({d: ('BAT54C,215.stp', 90, 180, -1.16) for d in ('D8', 'D9', 'D10')})           # Nexperia SOT-23: height along Y
 STEP.update({d: ('BAT54A,215.stp', 90, 90, -1.16) for d in ('D12', 'D14', 'D15', 'D16')})  # footprint has pads 1, 2 on +X
 STEP.update({d: ('BZX84-C4V7,215.stp', 90, 90, -1.16) for d in ('D11', 'D13')})
+# A bounding box cannot tell which way up a model is: the SOT-23s were legs-up twice while every box check passed.
+# So each model file must be listed here after someone has looked at it in a TILTED 3D view, from the side the part
+# is on, and seen the legs pointing down onto the pads. Change a model's rotation in STEP -> remove its line here.
+VERIFIED = {
+    'BAT54C,215.stp': 'tilted 3D view, top side, Nov 27 2026: legs down on the pads (model top is grey, underside black)',
+    'BAT54A,215.stp': 'tilted 3D view, bottom side, Nov 27 2026: legs down on the pads',
+    'BZX84-C4V7,215.stp': 'tilted 3D view, bottom side, Nov 27 2026: legs down on the pads',
+    'LM4040BIM3-2.5_NOPB.stp': 'tilted 3D view, top side, Nov 27 2026: legs down on the pads',
+    'GCM31CR71A226KE02K.stp': 'chip capacitor, same top and bottom; top view, Nov 27 2026',
+    '219-4MST.stp': 'top view, Nov 27 2026: actuators up, leads on both pad rows',
+}
+def unverified_models():
+    return sorted({f for f, rx, rz, dz in STEP.values()} - set(VERIFIED))
 THT = {d for d in GEO if any(p[1] == 'M' for p in GEO[d]['pads'])}
 ROUND = lambda d: d.startswith(('TP', 'MH'))
 
@@ -570,6 +583,17 @@ def pas(path):
          'Function M(V : Integer; Ref : Double) : String;', 'Begin', '  Result := FloatToStr(Round((CoordToMils(V) - Ref) * 100) / 100);', 'End;', '',
          'Function R2S(Rc : TCoordRect) : String;', 'Begin',
          "  Result := M(Rc.Left, X0) + '|' + M(Rc.Bottom, Y0) + '|' + M(Rc.Right, X0) + '|' + M(Rc.Top, Y0);", 'End;', '',
+         'Function ZRange(F : String; Rx : Double) : String;',
+         '{ Height range of a STEP model when turned Rx about X: a body turned a further 90 degrees shows its height',
+         '  axis in the plan view (plan y = -height), so its box gives the lowest and highest point. }',
+         'Var B : IPCB_ComponentBody; Mdl : IPCB_Model; Rb : TCoordRect;', 'Begin',
+         '  B := PCBServer.PCBObjectFactory(eComponentBodyObject, eNoDimension, eCreate_Default);',
+         '  Mdl := B.ModelFactory_FromFilename(F, False);',
+         '  Mdl.SetState(Rx + 90, 0, 0, 0); B.Model := Mdl; B.SetState_FromModel;',
+         '  Board.AddPCBObject(B);',
+         '  Rb := B.BoundingRectangle;',
+         "  Result := FloatToStr(Round(-CoordToMils(Rb.Top) * 2.54) / 100) + '|' + FloatToStr(Round(-CoordToMils(Rb.Bottom) * 2.54) / 100);",
+         '  Board.RemovePCBObject(B);', 'End;', '',
          'Procedure DumpV1;',
          'Var It : IPCB_BoardIterator; C : IPCB_Component; G : IPCB_GroupIterator; Pd : IPCB_Pad; Vi : IPCB_Via; T : IPCB_Text; S : TStringList; N : String; Nb : Integer; Bd : IPCB_Primitive;',
          'Begin'] + get_board + [
@@ -608,6 +632,7 @@ def pas(path):
          "    If Not T.InComponent Then S.Add('T|' + Copy(StringReplace(StringReplace(T.Text, #13, ' ', 1), #10, ' ', 1), 1, 22) + '|' + Layer2String(T.Layer) + '|' + FloatToStr(T.Rotation) + '|' + M(T.Size, 0) + '|' + R2S(T.BoundingRectangleForSelection));",
          '    T := It.NextPCBObject;', '  End;',
          '  Board.BoardIterator_Destroy(It);',
+     ] + [f"  S.Add('Z|{f}|{rx}|' + ZRange('{os.path.join(STEP_DIR, f)}', {rx}));" for f, rx in sorted({(f, rx) for f, rx, rz, dz in STEP.values()})] + [
          f"  S.SaveToFile('{DUMP_PATH}'); S.Free;",
          "  ShowMessage('Dump written');", 'End;', '',
          'Procedure Clear(Kind : Integer);', 'Var It : IPCB_BoardIterator; O : IPCB_Primitive; Lst : TInterfaceList; I : Integer;', 'Begin',
@@ -672,5 +697,6 @@ if __name__ == '__main__':
     svg(os.path.join(ROOT, 'design', 'V1_placement.svg')); pas(os.path.join(HERE, 'altium', 'place_v1.pas'))
     print(len(P), 'parts placed; not in table:', missing or 'none')
     print('too close (<%.2f mm):' % GAP, bad or 'none')
+    print('3D models not yet checked in a tilted view:', unverified_models() or 'none')
     print('designators placed:', len(DES), ' no room for:', failed or 'none',
           ' on own body:', sorted(d for d, (x, y, a) in DES.items() if hit((x, y, x, y), box(d))) or 'none')

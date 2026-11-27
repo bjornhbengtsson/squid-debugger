@@ -391,6 +391,20 @@ Begin
   Result := M(Rc.Left, X0) + '|' + M(Rc.Bottom, Y0) + '|' + M(Rc.Right, X0) + '|' + M(Rc.Top, Y0);
 End;
 
+Function ZRange(F : String; Rx : Double) : String;
+{ Height range of a STEP model when turned Rx about X: a body turned a further 90 degrees shows its height
+  axis in the plan view (plan y = -height), so its box gives the lowest and highest point. }
+Var B : IPCB_ComponentBody; Mdl : IPCB_Model; Rb : TCoordRect;
+Begin
+  B := PCBServer.PCBObjectFactory(eComponentBodyObject, eNoDimension, eCreate_Default);
+  Mdl := B.ModelFactory_FromFilename(F, False);
+  Mdl.SetState(Rx + 90, 0, 0, 0); B.Model := Mdl; B.SetState_FromModel;
+  Board.AddPCBObject(B);
+  Rb := B.BoundingRectangle;
+  Result := FloatToStr(Round(-CoordToMils(Rb.Top) * 2.54) / 100) + '|' + FloatToStr(Round(-CoordToMils(Rb.Bottom) * 2.54) / 100);
+  Board.RemovePCBObject(B);
+End;
+
 Procedure DumpV1;
 Var It : IPCB_BoardIterator; C : IPCB_Component; G : IPCB_GroupIterator; Pd : IPCB_Pad; Vi : IPCB_Via; T : IPCB_Text; S : TStringList; N : String; Nb : Integer; Bd : IPCB_Primitive;
 Begin
@@ -437,6 +451,12 @@ Begin
     T := It.NextPCBObject;
   End;
   Board.BoardIterator_Destroy(It);
+  S.Add('Z|219-4MST.stp|90|' + ZRange('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\219-4MST.stp', 90));
+  S.Add('Z|BAT54A,215.stp|90|' + ZRange('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54A,215.stp', 90));
+  S.Add('Z|BAT54C,215.stp|90|' + ZRange('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BAT54C,215.stp', 90));
+  S.Add('Z|BZX84-C4V7,215.stp|90|' + ZRange('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\BZX84-C4V7,215.stp', 90));
+  S.Add('Z|GCM31CR71A226KE02K.stp|0|' + ZRange('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\GCM31CR71A226KE02K.stp', 0));
+  S.Add('Z|LM4040BIM3-2.5_NOPB.stp|0|' + ZRange('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\Libraries\SquidDebugger_V1\3D\LM4040BIM3-2.5_NOPB.stp', 0));
   S.SaveToFile('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\tools\altium\pcb_dump.txt'); S.Free;
   ShowMessage('Dump written');
 End;

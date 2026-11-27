@@ -130,6 +130,11 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
   only shows when a non-PCB document (e.g. the DRC report) is active. To see the PCB: File > Smart PDF (current document) then render the PDF with PyMuPDF,
   because the PCB view does not show in computer-use screenshots. In Smart PDF / ECO dialogs mouse clicks are flaky:
   use Alt+N / Escape / Return, and Finish needs two clicks. Altium ignores Text.XLocation in scripts: use MoveByXY.
+- 3D MODEL RULE (learned the hard way, Nov 27): never report a 3D model as correct from a straight-down view or a
+  box check. Look at it in a TILTED 3D view from the side the part is on and see legs down on pads, then add the STEP
+  file to VERIFIED in tools/pcb_place.py (pcb_check.py fails for unlisted models). Turn the model BEFORE adding the
+  body; get its true axes with ProbeV1, not from raw STEP points (assembly files lie). Seat check = Z lines in the dump.
+  To get a tilted view: the user's own tilt persists; View > Flip Board switches sides while keeping it.
 - Change log for presentation: design/V1_CHANGELOG.md (what/why/alternatives) — append every change.
 - Net scope Global (HierarchyMode=3) DONE. TPS2121RUXR = CMP-019-00076-1 (pins verified).
 - MPS panel is a slide-out + right-click menu: invisible to computer use → user creates workspace parts.

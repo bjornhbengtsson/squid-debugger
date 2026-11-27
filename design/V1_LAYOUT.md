@@ -19,6 +19,11 @@ Status (Nov 27 2026): **components placed, silkscreen done, DRC run. Not routed.
 Nexperia SOT-23 files are drawn with Y as the height axis, so they are turned about X; the script then centres the
 turned model on the part's pads.
 
+**Guard against upside-down models:** `pcb_check.py` fails if a model floats or sinks by more than 0.15 mm, if a part
+has no model or two, or if a STEP file is not on the `VERIFIED` list. A file goes on that list only after it has
+been seen in a tilted 3D view with its legs on the pads. A straight-down view is not enough: the SOT-23 model's
+underside is black and looks like a package top from above.
+
 **One side at a time:** run `ViewFront` (File » Run Script) to hide everything on the bottom side, `ViewBack` to hide
 everything on the top side (then View » Flip Board), `ViewBoth` to show both again. They switch the copper, silk, paste,
 mask and "Top …" / "Bottom …" mechanical layers. Through-hole pads stay visible on both sides.

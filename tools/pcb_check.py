@@ -64,4 +64,21 @@ for i in range(3, 10):
     t = float((cu or di)[:-3]) * 0.0254; tot += t
     print(f'  {name:14} {"copper" if cu else "dielectric"} {t:.4f} mm' + (f'  er {b.get(f"V9_STACK_LAYER{i}_DIELCONST")}' if di else ''))
 print(f'  copper + dielectric total {tot:.3f} mm')
+# 5. 3D models: seated on the board (not floating, not sunk) and signed off as the right way up
+BODY, ZR = {}, {}
+for line in open(pp.DUMP_PATH, encoding='latin-1'):
+    f = line.rstrip('\r\n').split('|')
+    if f[0] == 'B' and len(f) >= 3: BODY[f[1]] = int(f[2])
+    elif f[0] == 'Z' and len(f) >= 5: ZR[(f[1], float(f[2]))] = (float(f[3]), float(f[4]))
+m = []
+for d in pp.P:
+    if BODY.get(d, 1) == 0 and not d.startswith('MH'): m.append((d, 'no 3D model'))
+    if BODY.get(d, 1) > 1: m.append((d, f'{BODY[d]} 3D bodies'))
+for d, (f, rx, rz, dz) in sorted(pp.STEP.items()):
+    z = ZR.get((f, float(rx % 360))) or ZR.get((f, float(rx)))
+    if z is None: m.append((d, 'model height not in the dump: run DumpV1')); continue
+    low = z[0] + dz
+    if abs(low) > 0.15: m.append((d, f'lowest point {low:+.2f} mm from the board (model z {z[0]}..{z[1]}, lift {dz})'))
+for f in pp.unverified_models(): m.append((f, 'not checked in a tilted 3D view: see VERIFIED in pcb_place.py'))
+print(f'3D models: {len(pp.STEP)} seated by script; problems {m or "none"}'); bad += len(m)
 print('errors =', bad)

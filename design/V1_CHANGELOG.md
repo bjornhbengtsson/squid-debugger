@@ -398,6 +398,27 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
 - **Alternatives:** shrink the GND label instead of lengthening the board; regenerate the artwork from a picture
   (the V0 regions are exact, so they were copied instead).
 
+## 28. Lesson logged: 3D models placed upside down; safeguards added (DONE Nov 27)
+- **What went wrong:** the nine SOT-23 diodes (D8-D16) and SW1 were shown wrong in 3D three times before they were right.
+  1. First they stood on edge: the vendor STEP files use Y as the height axis and I attached them unturned.
+  2. Then SW1 floated 5 mm up and sat off its pads: I turned the model after centring it, and Altium does not
+     update a body's outline when its model is turned later.
+  3. Then the diodes were legs-up: I picked the turn direction from a straight-down view, where this model's black
+     underside looked like a normal package top.
+- **Why the checks missed it:** every automatic check looked at outline boxes. A box is the same upside down.
+  The board's electrical data was never wrong; only the 3D display was.
+- **Safeguards now in the tools:**
+  - **Sign-off list.** `VERIFIED` in `tools/pcb_place.py` names each STEP file with how and when it was looked at.
+    A model that is not on the list makes `pcb_check.py` fail. The rule for getting on the list: view it in a
+    **tilted** 3D view from the side the part is on, and see the legs pointing down onto the pads.
+  - **Seat check.** `DumpV1` now measures each model's real lowest and highest point, and `pcb_check.py` fails if the
+    lowest point is more than 0.15 mm above or below the board. This catches floating and sunk models.
+  - **Body count.** `pcb_check.py` fails if a part has no 3D model (mounting holes excepted) or more than one.
+  - **Order of operations** is fixed in `Body3D`: turn first, then add, then centre on the pads.
+- **What the seat check cannot do:** it cannot tell which way up a model is. That is why the sign-off list exists.
+- **Measured:** SW1 -0.25..4.02 mm (lift 0.25), SOT-23 diodes 1.16..2.11 mm (lift -1.16), 22 uF caps 0..1.8 mm,
+  U10 0..1.01 mm. All seat within 0.01 mm of the board.
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.
