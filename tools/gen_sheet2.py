@@ -83,10 +83,28 @@ def nx(p):
 def R(val, a, b): return ('R', nx('R'), val, {'1': a, '2': b})
 def C(tpl, val, a, b='GND'): return (tpl, nx('C'), val, {'1': a, '2': b})
 
+def tvs5_template():
+    """SMBJ5.0A for the 3V3 / 5V / 5V RF jacks. There is no separate library symbol for it, so it is the SMBJ13A symbol
+    (same SMB / DO-214AA footprint) with the part identity changed: before Nov 27 D4-D6 only had "SMBJ5.0A" as their
+    comment while the part number, description and links still said SMBJ13A, so a BOM would have ordered 13 V diodes."""
+    import copy
+    tpl = copy.copy(T['TVS']); tpl.recs = [r.copy() for r in T['TVS'].recs]
+    par = {'MP': 'SMBJ5.0A', 'MF': 'Littelfuse', 'Value': 'SMBJ5.0A', 'Package': 'SMB (DO-214AA)',
+           'SnapEDA_Link': 'https://www.littelfuse.com/assetdocs/littelfuse-tvs-diode-smbj-datasheet',
+           'Check_prices': 'https://www.digikey.com/en/products/result?keywords=SMBJ5.0A%20Littelfuse'}
+    for r in tpl.recs:
+        rec = r.get('RECORD')
+        if rec == '1':
+            for k, v in (('LibReference', 'SMBJ5.0A'), ('DesignItemId', 'SMBJ5.0A'), ('SourceLibraryName', '*'),
+                         ('ComponentDescription', 'TVS, 600 W, 5.0 V stand-off, 6.40-7.00 V breakdown, 9.2 V clamp, unidirectional, SMB')): r.set(k, v)
+        elif rec == '41' and r.get('Name') in par: r.set('Text', par[r.get('Name')])
+    return tpl
+T['TVS5'] = tvs5_template()
+
 # Inputs: TVS at the banana jacks. Mux input caps (1 uF, one per TPS2121 IN pin) live in each mux box.
 blk = []
 for rail, tvs in (('+3V3_PSU', 'SMBJ5.0A'), ('+5V_PSU', 'SMBJ5.0A'), ('+5V_RF_PSU', 'SMBJ5.0A'), ('+12V_PSU', 'SMBJ13A')):
-    blk.append(('TVS', nx('D'), tvs, {'C': rail, 'A': 'GND'}))
+    blk.append(('TVS' if tvs == 'SMBJ13A' else 'TVS5', nx('D'), tvs, {'C': rail, 'A': 'GND'}))
 CIN = {   # rail -> input cap (designators kept stable; C2/C3/C6 moved here from sheet 1)
     '+5V_RF_LIM': C('C1U25', '1uF 25V', '+5V_RF_LIM'),
     '+12V_LIM':   C('C1U50', '1uF 50V', '+12V_LIM'),

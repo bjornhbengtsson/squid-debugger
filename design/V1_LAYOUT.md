@@ -228,9 +228,9 @@ Found and fixed during this pass:
 4. **Q1–Q4 footprint** `SOT103P240X110-3N`: its PcbLib is now part of the project, so imports find it. The compiled
    `SquidDebugger_V1.IntLib` still lacks it; recompile the LibPkg when convenient.
 5. Card envelope and hole pattern of the flight stack (now 61 × 110, holes 51 × 100): confirm with Alex.
-6. **eFuse footprint** `SOIC127P600X170-9N` (script-made, `MakeDDA8`): check pad and thermal-pad sizes against TI land
-   pattern DDA0008. In the library its pads are 50 000 mil from its reference point; on the board `FixDDA` has moved
-   them onto it. Set the reference point in the library (Edit » Set Reference » Center) so an update from the library
-   does not undo that; if it does, run `FixDDA` and then `PlaceV1` again.
+6. **eFuse footprint** `SOIC127P600X170-9N` (script-made, `MakeDDA8`): checked against TI's drawings on Nov 27 and
+   correct (changelog #36). In the library its pads are still 50 000 mil from its reference point; on the board `FixDDA`
+   has moved them onto it. Set the reference point in the library (Edit » Set Reference » Center), or run `FixDDA` and then
+   `PlaceV1` after any update from the library.
 7. **eFuse 3D model** is our own simplified drawing (`tools/make_efuse_step.py`). Swap in TI's DDA STEP file if wanted.
 8. **Bottom-side height** is now 1.7 mm (eFuses): confirm against the standoff height.

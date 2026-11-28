@@ -538,6 +538,33 @@ Numbers are backed by `tools/calc_v1.py` and the datasheets cited in `V1_PLAN.md
 - Re-read afterwards (`DumpV1`): no designator or label had moved, `pcb_check.py` errors = 0. The placement script no
   longer moves the SDSL logo or the title (both hand-placed now); it only keeps designators off them.
 
+## 36. eFuse footprint checked against TI; D4–D6 are real SMBJ5.0A parts now (DONE Nov 27)
+- **Footprint check: passes.** The script-made footprint `SOIC127P600X170-9N` was read back from the board (`ProbePads`)
+  and compared with TI's drawings:
+
+  | Feature | On the board | TI | Source |
+  |---|---|---|---|
+  | Signal pads | 8 × 1.55 × 0.60 mm | 8 × 1.55 × 0.60 mm | package drawing DDA0008B, 4214849/B (09/2025) |
+  | Row spacing (pad centres) | 5.40 mm | 5.40 mm | same |
+  | Pitch | 1.27 mm | 1.27 mm | same |
+  | Thermal pad opening | 2.40 × 3.10 mm, 3.10 along the pin rows | 2.40 × 3.10 mm, 3.10 along the pin rows | TPS2596 datasheet, land pattern 4208951-6/D and exposed pad 1.65–2.40 × 2.65–3.10 mm |
+  | Pin order | 1–4 down one side, 5–8 back up the other; thermal pad = pin 1 (GND) | same | datasheet top view |
+
+  The datasheet's own (older, 2012) land pattern page draws longer signal pads (0.5 × 2.2 mm on 5.75 mm centres); TI's
+  current drawing for the same package uses the shorter pads that are on the board. Either solders; the longer ones give
+  a hand iron more to hold on to. Kept the current TI geometry.
+- **Still to do at routing:** TI's layout puts 2.95 × 4.90 mm of copper under the thermal pad (mask-defined) with six
+  0.33 mm vias on a 1.3 mm grid into the ground plane. The footprint has only the 2.40 × 3.10 pad; the extra copper and
+  the vias are added when the board is routed.
+- **D4–D6:** these three TVS diodes (3V3, 5V, 5V RF jacks) showed "SMBJ5.0A" as their comment, but the part itself was
+  still SMBJ13A: library reference, manufacturer part number, description ("15.2 V") and links. A BOM would have
+  ordered 13 V diodes for the 5 V rails. They now have their own identity in the generator (`TVS5`): SMBJ5.0A,
+  Littelfuse, 5.0 V stand-off, same SMB footprint. D7 stays SMBJ13A. Sheet 2 regenerated; `verify_gen.py` 115/115.
+  The PCB footprints do not change. The board file still records the old library reference for D4–D6 until the next
+  schematic → PCB update; the BOM comes from the schematic, so it is already right.
+- **Alternatives:** draw a separate SMBJ5.0A library symbol (same result, more files); swap the parts by hand in
+  Altium (would be lost on the next regeneration of sheet 2).
+
 ## Open (not yet changed)
 - Switchable 120 Ω CAN termination (alternatives: solder jumper, 2-pin header, or split 2×60 Ω + 4.7 nF).
 - Net Identifier Scope → Global; remove the %TEMP% library links; create the TPS2121 workspace part.

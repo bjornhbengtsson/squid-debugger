@@ -35,3 +35,4 @@ _backup/
 tools/altium/probe_n.txt
 tools/altium/make_dda8.log
 tools/altium/probe_art.txt
+tools/altium/probe_pads.txt

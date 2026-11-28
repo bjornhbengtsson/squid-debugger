@@ -6,7 +6,7 @@ document. The revision used for the V1 design review is noted.
 | Part | Use | Datasheet (revision reviewed) |
 |---|---|---|
 | TPS2121 | Rail power mux U3/U5/U7/U8 | [TI SLVSEA3F](https://www.ti.com/lit/ds/symlink/tps2121.pdf) |
-| TPS259621 | Bench-rail current limit (eFuse) U14–U17 | [TI SLVSET8A](https://www.ti.com/lit/ds/symlink/tps2596.pdf) |
+| TPS259621 | Bench-rail current limit (eFuse) U14–U17 | [TI SLVSET8A](https://www.ti.com/lit/ds/symlink/tps2596.pdf) ; package drawing [DDA0008B](https://www.ti.com/lit/pdf/pptd058) |
 | MIC2544-1 | USB current limit U4 | [Microchip MIC2544/48](https://ww1.microchip.com/downloads/en/DeviceDoc/MIC2544.pdf) |
 | AP63203 | USB 3.3 V buck U13 | [Diodes DS41326](https://www.diodes.com/assets/Datasheets/AP63200-AP63201-AP63203-AP63205.pdf) |
 | TLV70433 | AUX LDO U9 | [TI SBVS148F](https://www.ti.com/lit/ds/symlink/tlv704.pdf) |

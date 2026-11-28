@@ -177,6 +177,11 @@ fast switchover (t_FSW ≈ 5 µs). Only one valid input → it powers OUT regard
   (its git origin = afs-vcs-uw1.365.altium.com; backup next to it: "... backup before V1 copy 20261127_1548"). The USER clicks Save to Server
   on that (5/6-sheet, lower) project; never click it yourself, and never on the hardware/ copy (same ManagedProjectGUID, GitHub remote).
   Keep editing in hardware/; re-copy before each server save (robocopy /E /R:1 /W:1, skip History/Project Logs/Outputs/__Previews).
+- Nov 27 (changelog #36): eFuse footprint VERIFIED against TI (DDA0008B 4214849/B + datasheet land pattern 4208951-6/D): pads
+  1.55x0.6 at 5.4 rows, thermal 2.4x3.1 (3.1 along the pins). At routing add TI's 2.95x4.9 copper + 6 vias 0.33 on 1.3 grid.
+  D4-D6 are generated from template TVS5 (SMBJ5.0A, Littelfuse) in gen_sheet2.py; D7 = SMBJ13A. After gen_sheet2.py, git checkout
+  the sheets that did not change in content (UniqueIDs are random per run). TI PDFs: drawings are graphics; render pages with
+  PyMuPDF and read them as images (ti.com/lit/pdf/pptd058; datasheet pages 44-46).
 - Change log for presentation: design/V1_CHANGELOG.md (what/why/alternatives) — append every change.
 - Net scope Global (HierarchyMode=3) DONE. TPS2121RUXR = CMP-019-00076-1 (pins verified).
 - MPS panel is a slide-out + right-click menu: invisible to computer use → user creates workspace parts.

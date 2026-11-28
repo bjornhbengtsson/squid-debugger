@@ -698,6 +698,30 @@ Begin
   ShowMessage('ProbeN written');
 End;
 
+Procedure ProbePads;   { read-only: real pad sizes and positions of the eFuse footprint (U14, U16) -> tools/altium/probe_pads.txt }
+Var S : TStringList; C : IPCB_Component; G : IPCB_GroupIterator; Pd : IPCB_Pad; K : Integer; D : String;
+Begin
+  Board := PCBServer.GetPCBBoardByPath('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\hardware\DebugBoard.PcbDoc');
+  If Board = Nil Then Board := PCBServer.GetCurrentPCBBoard;
+  If Board = Nil Then Begin ShowMessage('Open DebugBoard.PcbDoc first'); Exit; End;
+  X0 := 11558.4886; Y0 := 3895.504;
+  S := TStringList.Create;
+  For K := 0 To 1 Do Begin
+    If K = 0 Then D := 'U14' Else D := 'U16';
+    C := Board.GetPcbComponentByRefDes(D);
+    S.Add(D + ' pattern ' + C.Pattern + ' rotation ' + FloatToStr(C.Rotation) + ' origin ' + M(C.x, X0) + ',' + M(C.y, Y0));
+    G := C.GroupIterator_Create; G.AddFilter_ObjectSet(MkSet(ePadObject));
+    Pd := G.FirstPCBObject;
+    While Pd <> Nil Do Begin
+      S.Add('  pad ' + Pd.Name + ' size ' + M(Pd.TopXSize, 0) + ' x ' + M(Pd.TopYSize, 0) + ' mil  at dx ' + M(Pd.x - C.x, 0) + ' dy ' + M(Pd.y - C.y, 0) + ' pad-rotation ' + FloatToStr(Pd.Rotation));
+      Pd := G.NextPCBObject;
+    End;
+    C.GroupIterator_Destroy(G);
+  End;
+  S.SaveToFile('C:\Users\Public\Documents\Altium\Squid-Debugger\Squid-Debugger\tools\altium\probe_pads.txt'); S.Free;
+  ShowMessage('ProbePads written');
+End;
+
 Procedure DumpV1;
 Var It : IPCB_BoardIterator; C : IPCB_Component; G : IPCB_GroupIterator; Pd : IPCB_Pad; Vi : IPCB_Via; T : IPCB_Text; S : TStringList; N : String; Nb : Integer; Bd : IPCB_Primitive;
 Begin
